@@ -1,8 +1,9 @@
-# Auto_complete_system
+# Auto-complete System
 Auto-complete system using Neo4j graph database for storing data and fault tolerance. Return top suggestions to user.
 
-## Functionalities
-* The Trie class creates an application server that connected to a Neo4j database, supporting insertion, search and delete of terms from clients. 
-* Trie server can be constructed from Neo4j database.
-* The application server can update database based on latest usage.
-* Each search with a term returns top 10 suggestions with the term as prefix.
+## **Feature Support**
+* The Trie class creates an application server connected to a Neo4j database, which stores terms, counts and other associated information. Trie servers support insertion, search and deletion of terms. 
+* New Trie servers can be built from Neo4j database. See the `build_trie()` method for details.
+* The application server can update database based on latest usage. See the `update_db()` method for details.
+* Each search returns top 10 suggestions with the term as prefix.
+* Use advance logging techniques to track usage patterns.
