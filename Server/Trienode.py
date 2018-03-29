@@ -2,7 +2,7 @@ from collections import Counter
 
 
 class TrieNode:
-    def __init__(self, prefix=None, parent=None, is_word=False):
+    def __init__(self, prefix='', parent=None, is_word=False):
         """
 
         :param prefix: prefix of this node.
@@ -13,6 +13,5 @@ class TrieNode:
         self.children = dict()
         self.parent = parent
         self.count = 0      # number of times the whole term is searched after last update
-        # self.top_results = Counter({"{}".format(prefix): 0})
         self.top_results = Counter()
         self.isWord = is_word
