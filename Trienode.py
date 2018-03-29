@@ -13,5 +13,6 @@ class TrieNode:
         self.children = dict()
         self.parent = parent
         self.count = 0      # number of times the whole term is searched after last update
-        self.top_results = Counter({"{}".format(prefix): 0})
+        # self.top_results = Counter({"{}".format(prefix): 0})
+        self.top_results = Counter()
         self.isWord = is_word
