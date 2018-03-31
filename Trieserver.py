@@ -1,33 +1,39 @@
-from Trienode import TrieNode
-from py2neo import Node
 from collections import deque, Counter
+import logging
+import logging.config
+import yaml
+
 from nltk.corpus import words as en_corpus
-from logging import getLogger, FileHandler, INFO, Formatter
-from Database import DatabaseHandler, Parent, Child
+from py2neo import Node
+
+from Database import DatabaseHandler, Parent
+from Trienode import TrieNode
 
 
 class Trie:
-    """Returns top 10 results to the user. Results may be outdated before calling update trie function."""
+    """Returns top 10 results to the user.
+     Results may be outdated before calling update trie function."""
     english_words = set(en_corpus.words())
     trie_index = 0
 
-    def __init__(self, db_handler=DatabaseHandler(), logger=None):
+    def __init__(self, db_handler=DatabaseHandler()):
         self.root = TrieNode(prefix='', is_word=True)
         self.vocab = set()
         self.db = db_handler
+        self.node_count = 0
         # Logging facilities
-        self.log_file = 'trie_usage_{}.log'.format(Trie._get_next_trie_index())
-        self.logger = logger or getLogger('__main__')
-        self.logger.setLevel(INFO)
-        f_handler = FileHandler(self.log_file)
-        f_handler.setLevel(INFO)
-        formatter = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        f_handler.setFormatter(formatter)
-        self.logger.addHandler(f_handler)
-        self.searchLogger = getLogger('root.search')
-        self.insertLogger = getLogger('root.insertion')
-        self.searchLogger.addHandler(f_handler)
-        self.insertLogger.addHandler(f_handler)
+        # self.log_file = 'trie_usage_{}.log'.format(Trie._get_next_trie_index())
+        with open('logging.config', 'r') as f:
+            config = yaml.safe_load(f)
+        logging.config.dictConfig(config)
+        self.logger = logging.getLogger('Trie_db')
+        self.insertLogger = logging.getLogger('Trie_db.insert')
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return "Trie application server with {} nodes".format(self.node_count)
 
     @classmethod
     def _get_next_trie_index(cls):
@@ -57,7 +63,7 @@ class Trie:
                 tx.create(db_node_child)
                 count += 1
                 tx.create(Parent(db_node, db_node_child))
-                tx.create(Child(db_node_child, db_node))
+                # tx.create(Child(db_node_child, db_node))
         tx.commit()
         self.logger.info('Finished updating database. Number of nodes created is %d' % count)
         if tx.finished():
@@ -76,7 +82,7 @@ class Trie:
 
     def insert(self, word, isword=True, count=0, from_db=False):
         """
-        Insert a word into the trie. This method should be hidden from user.
+        This method inserts a word into the trie. This method should be hidden from user.
         Only method build_trie() and search() should call this method.
         :param word: str
         :param isword: bool
@@ -84,11 +90,15 @@ class Trie:
         :param from_db: True if the method is called by build_trie()
         :return: Trie node which correspond to the word inserted
         """
+        assert isinstance(word, str)
+        if len(word.split()) > 1:
+            return None
         if word in Trie.english_words:
             self.vocab.add(word)
         cur = self.root
         for char in word:
             if char not in cur.children:
+                self.node_count += 1
                 cur.children[char] = TrieNode(prefix=cur.prefix+char, parent=cur)
             cur = cur.children[char]
         cur.isWord = isword
@@ -108,10 +118,20 @@ class Trie:
         :param search_term: str
         :return: List[str]
         """
-        words = search_term.split()
         last_node = None
-        for word in words:
-            last_node = self.insert(word, from_db=False)
+        if search_term == '':
+            last_node = self.root
+        else:
+            try:
+                words = search_term.split()
+                if len(words) == 0:
+                    return []
+                for word in words:
+                    last_node = self.insert(word, from_db=False)
+            except AttributeError as e:
+                print('The search term {} is not a string'.format(search_term, str(e)))
+                return
+
         return [word[0] for word in last_node.top_results.most_common(10)]
 
     def update_top_results(self):
@@ -129,7 +149,7 @@ class Trie:
     @staticmethod
     def update_parent(node):
         d = Counter()
-        while node.parent:
+        while node:
             if node.isWord:
                 d[node.prefix] += node.count
             node.top_results.update(d)
