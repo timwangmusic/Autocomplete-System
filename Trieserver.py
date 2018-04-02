@@ -4,7 +4,7 @@ import logging.config
 import yaml
 
 from nltk.corpus import words as en_corpus
-from py2neo import Node
+from py2neo import Node, NodeSelector
 
 from Database import DatabaseHandler, Parent
 from Trienode import TrieNode
@@ -21,6 +21,7 @@ class Trie:
         self.vocab = set()
         self.db = db_handler
         self.node_count = 0
+        self.selector = NodeSelector(self.db.graph)
         # Logging facilities
         # self.log_file = 'trie_usage_{}.log'.format(Trie._get_next_trie_index())
         with open('logging.config', 'r') as f:
@@ -34,6 +35,11 @@ class Trie:
 
     def __repr__(self):
         return "Trie application server with {} nodes".format(self.node_count)
+
+    def app_reset(self):
+        self.root = TrieNode(prefix='', is_word=True)
+        self.vocab = set()
+        self.node_count = 0
 
     @classmethod
     def _get_next_trie_index(cls):
@@ -49,16 +55,23 @@ class Trie:
         queue = deque()
         tx = self.db.graph.begin()
         self.logger.debug('Start updating database.')
-        node = Node('TrieNode', 'root', prefix=self.root.prefix, isword=self.root.isWord, count=self.root.count)
+        node = Node('TrieNode', 'ROOT',
+                    isword=self.root.isWord,
+                    count=self.root.count,
+                    prefix='',
+                    )
         tx.create(node)     # create root in neo4j
         queue.append((node, self.root))
         count = 0
         while queue:
             db_node, cur = queue.popleft()
             for child in cur.children:
-                db_node_child = Node('TrieNode', prefix=cur.children[child].prefix,
+                prefix = cur.children[child].prefix
+                db_node_child = Node('TrieNode', prefix,
                                      isword=cur.children[child].isWord,
-                                     count=cur.children[child].count)
+                                     count=cur.children[child].count,
+                                     prefix=prefix
+                                     )
                 queue.append((db_node_child, cur.children[child]))
                 tx.create(db_node_child)
                 count += 1
@@ -74,11 +87,31 @@ class Trie:
         This method builds trie server with TrieNode-labeled nodes from the database.
         :return: None
         """
+        self.app_reset()
         data_cursor = self.db.graph.run("MATCH(n:TrieNode)-[:PARENT]->(m) RETURN m.prefix, m.isword, m.count")
         for record in data_cursor:
             prefix, isword, count = record['m.prefix'], record['m.isword'], record['m.count']
             self.insert(prefix, isword=isword, count=count, from_db=True)
         self.update_top_results()
+
+    def build_trie_new(self):
+        """
+        This method builds trie server with TrieNode-labeled nodes from the database.
+        Compared to previous version, significantly improves run-time by only insert complete words.
+        Runtime reduction: O(NK^2) -> O(NK), where N is number of words and K is average word length.
+        :return: None
+        """
+        self.app_reset()
+        root = self.selector.select('ROOT').first()
+        g = self.db.graph
+        def dfs(node):
+            d = dict(node)
+            prefix, isword, count = d['prefix'], d['isword'], d['count']
+            if isword:
+                self.insert(prefix, isword, count, from_db=True)
+            for rel in g.match(node, rel_type='PARENT'):
+                dfs(rel.end_node())
+        dfs(root)
 
     def insert(self, word, isword=True, count=0, from_db=False):
         """
@@ -90,7 +123,11 @@ class Trie:
         :param from_db: True if the method is called by build_trie()
         :return: Trie node which correspond to the word inserted
         """
-        assert isinstance(word, str)
+        try:
+            assert isinstance(word, str), "{} is not a string".format(word)
+        except AssertionError as e:
+            print(str(e))
+            raise
         if len(word.split()) > 1:
             return None
         if word in Trie.english_words:
