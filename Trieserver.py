@@ -172,6 +172,7 @@ class Trie:
                 return
         if self.search_count == 10:
             self.search_count = 0
+            self.update_top_results()
         self.search_count += 1
         return [word[0] for word in last_node.top_results.most_common(10)]
 
