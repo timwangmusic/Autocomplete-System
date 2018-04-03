@@ -22,6 +22,7 @@ class Trie:
         self.db = db_handler
         self.node_count = 0
         self.selector = NodeSelector(self.db.graph)
+        self.search_count = 0   # tracking number of search before performing trie update
         # Logging facilities
         # self.log_file = 'trie_usage_{}.log'.format(Trie._get_next_trie_index())
         with open('logging.config', 'r') as f:
@@ -67,7 +68,7 @@ class Trie:
             db_node, cur = queue.popleft()
             for child in cur.children:
                 prefix = cur.children[child].prefix
-                db_node_child = Node('TrieNode', prefix,
+                db_node_child = Node('TrieNode',
                                      isword=cur.children[child].isWord,
                                      count=cur.children[child].count,
                                      prefix=prefix
@@ -104,6 +105,7 @@ class Trie:
         self.app_reset()
         root = self.selector.select('ROOT').first()
         g = self.db.graph
+        
         def dfs(node):
             d = dict(node)
             prefix, isword, count = d['prefix'], d['isword'], d['count']
@@ -168,7 +170,9 @@ class Trie:
             except AttributeError as e:
                 print('The search term {} is not a string'.format(search_term, str(e)))
                 return
-
+        if self.search_count == 10:
+            self.search_count = 0
+        self.search_count += 1
         return [word[0] for word in last_node.top_results.most_common(10)]
 
     def update_top_results(self):
