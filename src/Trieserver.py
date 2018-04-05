@@ -6,8 +6,8 @@ import yaml
 from nltk.corpus import words as en_corpus
 from py2neo import Node, NodeSelector
 
-from Database import DatabaseHandler, Parent
-from Trienode import TrieNode
+from . import Database
+from . import Trienode
 
 
 class Trie:
@@ -15,9 +15,10 @@ class Trie:
      Results may be outdated before calling update trie function."""
     english_words = set(en_corpus.words())
     trie_index = 0
+    trie_update_frequency = 10
 
-    def __init__(self, db_handler=DatabaseHandler()):
-        self.root = TrieNode(prefix='', is_word=True)
+    def __init__(self, db_handler=Database.DatabaseHandler()):
+        self.root = Trienode.TrieNode(prefix='', is_word=True)
         self.vocab = set()
         self.db = db_handler
         self.node_count = 0
@@ -38,7 +39,7 @@ class Trie:
         return "Trie application server with {} nodes".format(self.node_count)
 
     def app_reset(self):
-        self.root = TrieNode(prefix='', is_word=True)
+        self.root = Trienode.TrieNode(prefix='', is_word=True)
         self.vocab = set()
         self.node_count = 0
 
@@ -76,7 +77,7 @@ class Trie:
                 queue.append((db_node_child, cur.children[child]))
                 tx.create(db_node_child)
                 count += 1
-                tx.create(Parent(db_node, db_node_child))
+                tx.create(Database.Parent(db_node, db_node_child))
                 # tx.create(Child(db_node_child, db_node))
         tx.commit()
         self.logger.info('Finished updating database. Number of nodes created is %d' % count)
@@ -105,7 +106,7 @@ class Trie:
         self.app_reset()
         root = self.selector.select('ROOT').first()
         g = self.db.graph
-        
+
         def dfs(node):
             d = dict(node)
             prefix, isword, count = d['prefix'], d['isword'], d['count']
@@ -138,14 +139,14 @@ class Trie:
         for char in word:
             if char not in cur.children:
                 self.node_count += 1
-                cur.children[char] = TrieNode(prefix=cur.prefix+char, parent=cur)
+                cur.children[char] = Trienode.TrieNode(prefix=cur.prefix+char, parent=cur)
             cur = cur.children[char]
         cur.isWord = isword
         if from_db:
             cur.count = count
         else:
             cur.count += 1
-        self.insertLogger.debug('{} is inserted to vocabulary'.format(word))
+        self.insertLogger.debug('Insert used for {}.'.format(word))
         return cur
 
     def search(self, search_term):
@@ -170,7 +171,7 @@ class Trie:
             except AttributeError as e:
                 print('The search term {} is not a string'.format(search_term, str(e)))
                 return
-        if self.search_count == 10:
+        if self.search_count == Trie.trie_update_frequency:
             self.search_count = 0
             self.update_top_results()
         self.search_count += 1
