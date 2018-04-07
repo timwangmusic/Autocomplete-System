@@ -15,7 +15,7 @@ class Trie:
      Results may be outdated before calling update trie function."""
     english_words = set(en_corpus.words())
     trie_index = 0
-    trie_update_frequency = 10
+    trie_update_frequency = 1
 
     def __init__(self, db_handler=Database.DatabaseHandler()):
         self.root = Trienode.TrieNode(prefix='', is_word=True)
@@ -41,7 +41,7 @@ class Trie:
     def app_reset(self):
         self.root = Trienode.TrieNode(prefix='', is_word=True)
         self.vocab = set()
-        self.node_count = 0
+        self.node_count = 1
 
     @classmethod
     def _get_next_trie_index(cls):
@@ -59,8 +59,7 @@ class Trie:
         self.logger.debug('Start updating database.')
         node = Node('TrieNode', 'ROOT',
                     isword=self.root.isWord,
-                    count=self.root.count,
-                    prefix='',
+                    name='ROOT',
                     )
         tx.create(node)     # create root in neo4j
         queue.append((node, self.root))
@@ -70,9 +69,8 @@ class Trie:
             for child in cur.children:
                 prefix = cur.children[child].prefix
                 db_node_child = Node('TrieNode',
+                                     name=prefix,
                                      isword=cur.children[child].isWord,
-                                     count=cur.children[child].count,
-                                     prefix=prefix
                                      )
                 queue.append((db_node_child, cur.children[child]))
                 tx.create(db_node_child)
@@ -85,18 +83,6 @@ class Trie:
             self.logger.debug('Transaction finished.')
 
     def build_trie(self):
-        """
-        This method builds trie server with TrieNode-labeled nodes from the database.
-        :return: None
-        """
-        self.app_reset()
-        data_cursor = self.db.graph.run("MATCH(n:TrieNode)-[:PARENT]->(m) RETURN m.prefix, m.isword, m.count")
-        for record in data_cursor:
-            prefix, isword, count = record['m.prefix'], record['m.isword'], record['m.count']
-            self.insert(prefix, isword=isword, count=count, from_db=True)
-        self.update_top_results()
-
-    def build_trie_new(self):
         """
         This method builds trie server with TrieNode-labeled nodes from the database.
         Compared to previous version, significantly improves run-time by only insert complete words.
@@ -146,16 +132,18 @@ class Trie:
             cur.count = count
         else:
             cur.count += 1
-        self.insertLogger.debug('Insert used for {}.'.format(word))
+        self.insertLogger.debug('Insert used for {}. It is searched {} times.'.format
+                                (word, cur.top_results[cur.prefix]))
         return cur
 
-    def search(self, search_term):
+    def search(self, search_term, from_adv_app=False):
         """
         API for clients to get a list of top suggestions.
         The input may be a sentence, with words separated by space.
         Search top results for entire sentence may not make sense.
         Current design returns top results only based on last word in a sentence.
         :param search_term: str
+        :param from_adv_app: bool
         :return: List[str]
         """
         last_node = None
@@ -171,11 +159,12 @@ class Trie:
             except AttributeError as e:
                 print('The search term {} is not a string'.format(search_term, str(e)))
                 return
-        if self.search_count == Trie.trie_update_frequency:
+        if self.search_count >= Trie.trie_update_frequency and not from_adv_app:
             self.search_count = 0
             self.update_top_results()
-        self.search_count += 1
-        return [word[0] for word in last_node.top_results.most_common(10)]
+        if not from_adv_app:
+            self.search_count += 1
+        return [word[0] for word in last_node.top_results.most_common(10)]+[last_node.prefix]
 
     def update_top_results(self):
         """
