@@ -26,7 +26,7 @@ class AdvTrie(Trieserver.Trie):
         corrections = []
         if len(search_term) > 0:
             corrections = self.checker.most_likely_replacements(search_term.split()[-1],
-                                                            self.num_corrections)
+                                                                self.num_corrections)
         self.insertLogger.debug('basic results are {}'.format(str(basic_results)))
         corrections = [word for word in corrections if word not in basic_results]
 
