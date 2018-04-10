@@ -18,10 +18,10 @@ class Trie:
     trie_update_frequency = 1
 
     def __init__(self, db_handler=Database.DatabaseHandler()):
-        self.root = Trienode.TrieNode(prefix='', is_word=True)
+        self.root = Trienode.TrieNode(prefix='', is_word=False)
         self.vocab = set()
         self.db = db_handler
-        self.node_count = 0
+        self.node_count = 1
         self.selector = NodeSelector(self.db.graph)
         self.search_count = 0   # tracking number of search before performing trie update
         # Logging facilities
@@ -39,9 +39,7 @@ class Trie:
         return "Trie application server with {} nodes".format(self.node_count)
 
     def app_reset(self):
-        self.root = Trienode.TrieNode(prefix='', is_word=True)
-        self.vocab = set()
-        self.node_count = 1
+        self.__init__(db_handler=Database.DatabaseHandler())
 
     @classmethod
     def _get_next_trie_index(cls):
@@ -49,18 +47,21 @@ class Trie:
         Trie.trie_index += 1
         return result
 
-    def update_db(self):
+    def build_db(self):
         """
-        This method updates database with in-memory data in application server.
+        This method removes data from database and build new graph with in-memory data in application server.
         :return: None
         """
+        # self.db.graph.run('match(n:TrieNode) detach delete n')
+        self.db.graph.delete_all()  # delete all existing nodes and relationships
         queue = deque()
         tx = self.db.graph.begin()
-        self.logger.debug('Start updating database.')
+        self.logger.info('Start updating database.')
         node = Node('TrieNode', 'ROOT',
-                    isword=self.root.isWord,
-                    name='ROOT',
+                    isword=False,
+                    name='',
                     )
+        node['count'] = self.root.total_counts()
         tx.create(node)     # create root in neo4j
         queue.append((node, self.root))
         count = 0
@@ -71,6 +72,7 @@ class Trie:
                 db_node_child = Node('TrieNode',
                                      name=prefix,
                                      isword=cur.children[child].isWord,
+                                     count=cur.children[child].total_counts()
                                      )
                 queue.append((db_node_child, cur.children[child]))
                 tx.create(db_node_child)
@@ -80,7 +82,38 @@ class Trie:
         tx.commit()
         self.logger.info('Finished updating database. Number of nodes created is %d' % count)
         if tx.finished():
-            self.logger.debug('Transaction finished.')
+            self.logger.info('Transaction finished.')
+
+    def update_db(self):
+        """
+        Update database with latest application server usage
+        :return: None
+        """
+        root = self.root
+        g = self.db.graph
+
+        def dfs(node, parent):
+            """update node info to database"""
+            if not node:
+                return
+            db_node = self.selector.select('TrieNode', name=node.prefix).first()
+            if not db_node:
+                tx = g.begin()
+                db_node = Node('TrieNode',
+                               name=node.prefix,
+                               isword=node.isWord,
+                               count=0)
+                tx.create(db_node)
+                parent_db_node = self.selector.select('TrieNode', name=parent.prefix).first()
+                tx.create(Database.Parent(parent_db_node, db_node))
+                tx.commit()
+            else:
+                db_node['count'] += node.total_counts()
+                g.push(db_node)
+            for child in node.children:
+                dfs(node.children[child], node)
+
+        dfs(root, None)
 
     def build_trie(self):
         """
@@ -95,12 +128,13 @@ class Trie:
 
         def dfs(node):
             d = dict(node)
-            prefix, isword, count = d['prefix'], d['isword'], d['count']
+            prefix, isword, count = d['name'], d['isword'], d['count']
             if isword:
-                self.insert(prefix, isword, count, from_db=True)
+                self.insert(prefix, isword, from_db=True, count=count)
             for rel in g.match(node, rel_type='PARENT'):
                 dfs(rel.end_node())
         dfs(root)
+        self.update_top_results()
 
     def insert(self, word, isword=True, count=0, from_db=False):
         """
@@ -119,19 +153,26 @@ class Trie:
             raise
         if len(word.split()) > 1:
             return None
+
         if word in Trie.english_words:
             self.vocab.add(word)
+
         cur = self.root
+
         for char in word:
             if char not in cur.children:
                 self.node_count += 1
                 cur.children[char] = Trienode.TrieNode(prefix=cur.prefix+char, parent=cur)
             cur = cur.children[char]
+
+        cur.set_total_counts(count)
         cur.isWord = isword
+
         if from_db:
-            cur.count = count
+            cur.count = 0
         else:
             cur.count += 1
+
         self.insertLogger.debug('Insert used for {}. It is searched {} times.'.format
                                 (word, cur.top_results[cur.prefix]))
         return cur

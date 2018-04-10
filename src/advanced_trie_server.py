@@ -4,9 +4,9 @@ from . import Spell
 
 class AdvTrie(Trieserver.Trie):
     """This class provides advanced functionality such as providing auto-corrections as suggestions."""
-    NUM_CORRECTIONS_TO_INSERT = 3
-    MAX_BASIC_RESULTS = 15
     MAX_CORRECTIONS = 10
+    NUM_CORRECTIONS_TO_INSERT = MAX_CORRECTIONS // 2
+    MAX_BASIC_RESULTS = 15
 
     def __init__(self, num_corrections=5, num_basic_results=5):
         super().__init__()
@@ -23,8 +23,11 @@ class AdvTrie(Trieserver.Trie):
         :return: List[str]
         """
         basic_results = super().search(search_term, from_adv_app=from_adv_app)
-        corrections = self.checker.most_likely_replacements(search_term.split()[-1],
+        corrections = []
+        if len(search_term) > 0:
+            corrections = self.checker.most_likely_replacements(search_term.split()[-1],
                                                             self.num_corrections)
+        self.insertLogger.debug('basic results are {}'.format(str(basic_results)))
         corrections = [word for word in corrections if word not in basic_results]
 
         for word in corrections[:AdvTrie.NUM_CORRECTIONS_TO_INSERT]:
