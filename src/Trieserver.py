@@ -29,7 +29,6 @@ class Trie:
         self.selector = NodeSelector(self.db.graph)
         self.search_count = 0   # tracking number of search before performing trie update
         # Logging facilities
-        # self.log_file = 'trie_usage_{}.log'.format(Trie._get_next_trie_index())
         with open('logging.config', 'r') as f:
             config = yaml.safe_load(f)
         logging.config.dictConfig(config)
