@@ -12,7 +12,7 @@ class TrieNode:
         self.prefix = prefix
         self.children = dict()
         self.parent = parent
-        self.count = 0      # number of times the whole term is searched after last update
+        self.count = 0      # number of times the term is searched after last trie update
         self.top_results = Counter()
         if is_word:
             self.top_results[self.prefix] = 1

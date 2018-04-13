@@ -53,6 +53,8 @@ class Trie:
         self._set_num_res_return(val)
 
     def _set_num_res_return(self, val):
+        if val < 1:
+            raise ValueError('should return at least 1 result.')
         self._num_res_return = val
 
     def app_reset(self):
@@ -119,13 +121,13 @@ class Trie:
                 db_node = Node('TrieNode',
                                name=node.prefix,
                                isword=node.isWord,
-                               count=0)
+                               count=node.total_counts())
                 tx.create(db_node)
                 parent_db_node = self.selector.select('TrieNode', name=parent.prefix).first()
                 tx.create(Database.Parent(parent_db_node, db_node))
                 tx.commit()
             else:
-                db_node['count'] += node.total_counts()
+                db_node['count'] = node.total_counts()
                 g.push(db_node)
             for child in node.children:
                 dfs(node.children[child], node)
@@ -182,11 +184,11 @@ class Trie:
                 cur.children[char] = Trienode.TrieNode(prefix=cur.prefix+char, parent=cur)
             cur = cur.children[char]
 
-        cur.set_total_counts(count)
         cur.isWord = isword
 
         if from_db:
             cur.count = 0
+            cur.set_total_counts(count)
         else:
             cur.count += 1
 
