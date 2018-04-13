@@ -17,7 +17,11 @@ class Trie:
     trie_index = 0
     trie_update_frequency = 1
 
-    def __init__(self, db_handler=Database.DatabaseHandler()):
+    def __init__(self, db_handler=Database.DatabaseHandler(), num_res_return=10):
+        """
+        :param db_handler: Neo4j database controller
+        :param num_res_return: maximum number of results to return to user
+        """
         self.root = Trienode.TrieNode(prefix='', is_word=False)
         self.vocab = set()
         self.db = db_handler
@@ -31,12 +35,25 @@ class Trie:
         logging.config.dictConfig(config)
         self.logger = logging.getLogger('Trie_db')
         self.insertLogger = logging.getLogger('Trie_db.insert')
+        self._num_res_return = num_res_return
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
         return "Trie application server with {} nodes".format(self.node_count)
+
+    # accessor for num_res_return
+    @property
+    def num_res_return(self):
+        return self._num_res_return
+
+    @num_res_return.setter
+    def num_res_return(self, val):
+        self._set_num_res_return(val)
+
+    def _set_num_res_return(self, val):
+        self._num_res_return = val
 
     def app_reset(self):
         self.__init__(db_handler=Database.DatabaseHandler())
@@ -173,8 +190,7 @@ class Trie:
         else:
             cur.count += 1
 
-        self.insertLogger.debug('Insert used for {}. It is searched {} times.'.format
-                                (word, cur.top_results[cur.prefix]))
+        self.insertLogger.debug('Insert used for {}'.format(word))
         return cur
 
     def search(self, search_term, from_adv_app=False):
@@ -200,12 +216,16 @@ class Trie:
             except AttributeError as e:
                 print('The search term {} is not a string'.format(search_term, str(e)))
                 return
+
+        if not from_adv_app:
+            self.search_count += 1
+
         if self.search_count >= Trie.trie_update_frequency and not from_adv_app:
             self.search_count = 0
             self.update_top_results()
-        if not from_adv_app:
-            self.search_count += 1
-        return [word[0] for word in last_node.top_results.most_common(10)]+[last_node.prefix]
+
+        result = {word[0] for word in last_node.top_results.most_common(self.num_res_return)}
+        return list(result)
 
     def update_top_results(self):
         """

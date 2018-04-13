@@ -1,6 +1,6 @@
 import unittest
 
-from Trieserver import Trie
+from src.Trieserver import Trie
 
 
 class TrieServerTest(unittest.TestCase):
@@ -8,6 +8,7 @@ class TrieServerTest(unittest.TestCase):
         self.trie = Trie()
 
     def test_insert_single_word(self):
+        # test if the last node on the path to the inserted is correct
         node = self.trie.insert('linux', from_db=False)
         self.assertEqual(node.prefix, 'linux')
         self.assertEqual(node.isWord, True)
@@ -32,7 +33,7 @@ class TrieServerTest(unittest.TestCase):
 
     def test_search_query_single_word(self):
         # After insert via search and update, should return the word
-        self.trie.search('testing')
+        self.trie.search('testing', from_adv_app=False)
         self.trie.update_top_results()
         res = self.trie.search("")
         self.assertEqual(res[0], 'testing')

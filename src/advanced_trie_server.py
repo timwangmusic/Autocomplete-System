@@ -8,11 +8,12 @@ class AdvTrie(Trieserver.Trie):
     NUM_CORRECTIONS_TO_INSERT = MAX_CORRECTIONS // 2
     MAX_BASIC_RESULTS = 15
 
-    def __init__(self, num_corrections=5, num_basic_results=5):
-        super().__init__()
+    def __init__(self, num_corrections=10, num_basic_results=10):
+        super().__init__(num_res_return=num_basic_results)
         self.checker = Spell.Spell()
         self.num_corrections = num_corrections
         self.num_basic_search_results = num_basic_results
+        self.max_total_res = min(10, num_basic_results+num_corrections)
 
     def search(self, search_term, from_adv_app=True):
         """
@@ -38,7 +39,7 @@ class AdvTrie(Trieserver.Trie):
             self.search_count = 0
             self.update_top_results()
 
-        return list(set(corrections + basic_results[:self.num_basic_search_results]))
+        return list(set(corrections + basic_results))[:self.max_total_res]
 
     @property
     def num_corrections(self):
