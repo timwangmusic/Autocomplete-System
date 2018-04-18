@@ -1,6 +1,6 @@
 from . import Trieserver
 from . import Spell
-from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import BallTree
 import numpy as np
 import json
 from os import path
@@ -35,9 +35,8 @@ class AdvTrie(Trieserver.Trie):
         self.int_vocab = {i: word for word, i in self.vocab_int.items()}
 
         # train k nearest neighbor model
-        print ("Training k nearest neighbor searcher...")
-        self.searcher = NearestNeighbors(n_neighbors=5, algorithm='ball_tree').\
-            fit(self.embeddings)
+        print ("Training BallTree k-nearest neighbor searcher...")
+        self.searcher = BallTree(self.embeddings, leaf_size=10)
         print ("Ready to use.")
 
     def next_words(self, word):
@@ -47,7 +46,7 @@ class AdvTrie(Trieserver.Trie):
         :return: List[str]
         """
         index = self.vocab_int[word]
-        _, neighbors = self.searcher.kneighbors([self.embeddings[index]])
+        neighbors = self.searcher.query([self.embeddings[index]], k=5, return_distance=False)
         res = []
         for neighbor in list(neighbors.flatten()):
             res.append(self.int_vocab[neighbor])
