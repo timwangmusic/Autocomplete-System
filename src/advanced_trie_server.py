@@ -1,5 +1,9 @@
 from . import Trieserver
 from . import Spell
+from sklearn.neighbors import NearestNeighbors
+import numpy as np
+import json
+from os import path
 
 
 class AdvTrie(Trieserver.Trie):
@@ -8,12 +12,46 @@ class AdvTrie(Trieserver.Trie):
     NUM_CORRECTIONS_TO_INSERT = MAX_CORRECTIONS // 2
     MAX_BASIC_RESULTS = 15
 
-    def __init__(self, num_corrections=10, num_basic_results=10):
+    def __init__(self, num_corrections=10, num_basic_results=10,
+                 home_dir="/Users/Weihe/Dropbox/Auto_complete_system/src",
+                 embedding_json="embedding_res.json",
+                 vocab_int_json="vocab_to_int.json"):
         super().__init__(num_res_return=num_basic_results)
+
+        embedding_json = path.join(home_dir, embedding_json)
+        vocab_int_json = path.join(home_dir, vocab_int_json)
+
         self.checker = Spell.Spell()
         self.num_corrections = num_corrections
         self.num_basic_search_results = num_basic_results
         self.max_total_res = min(10, num_basic_results+num_corrections)
+
+        # load json files
+        print ("Loading JSON files, may take a while.")
+        with open(embedding_json, 'r') as read_file:
+            self.embeddings = np.array(json.load(read_file))
+        with open(vocab_int_json, 'r') as read_file:
+            self.vocab_int = json.load(read_file)
+        self.int_vocab = {i: word for word, i in self.vocab_int.items()}
+
+        # train k nearest neighbor model
+        print ("Training k nearest neighbor searcher...")
+        self.searcher = NearestNeighbors(n_neighbors=5, algorithm='ball_tree').\
+            fit(self.embeddings)
+        print ("Training is done")
+
+    def next_words(self, word):
+        """
+        Given an input return the next most relevant words contextually.
+        :param word: str
+        :return: List[str]
+        """
+        index = self.vocab_int[word]
+        _, neighbors = self.searcher.kneighbors([self.embeddings[index]])
+        res = []
+        for neighbor in list(neighbors.flatten()):
+            res.append(self.int_vocab[neighbor])
+        return res[1:]
 
     def search(self, search_term, from_adv_app=True):
         """
