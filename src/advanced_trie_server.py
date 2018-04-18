@@ -38,7 +38,7 @@ class AdvTrie(Trieserver.Trie):
         print ("Training k nearest neighbor searcher...")
         self.searcher = NearestNeighbors(n_neighbors=5, algorithm='ball_tree').\
             fit(self.embeddings)
-        print ("Training is done")
+        print ("Ready to use.")
 
     def next_words(self, word):
         """
