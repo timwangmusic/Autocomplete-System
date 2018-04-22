@@ -7,7 +7,8 @@ Auto-complete system using Neo4j graph database for storing data and fault toler
 * The application server updates database based on latest usage with configurable update frequency. See the `search()` method for details.
 * Tkinter GUI for search API. To use GUI, run `py app.py`.
 * Use advance logging techniques to track usage patterns.
-
+* Created advanced trie server that returns spell correction in case the terms are not English words.
+* Serialization and deserialization of app server. Serialization encodes information prefix, if the term is word and top 10 suggestions in the subtree.
 
 <p align="center">
   <img src="https://github.com/weihesdlegend/Auto-complete-System/blob/master/prefix_tree.png" width="500" title = "Prefix Tree Representation in Neo4j", alt="Prefix Tree"/>

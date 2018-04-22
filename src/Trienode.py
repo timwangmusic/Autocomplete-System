@@ -32,4 +32,3 @@ class TrieNode:
         :return: None
         """
         self.top_results[self.prefix] = val
-

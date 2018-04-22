@@ -39,14 +39,16 @@ class AdvTrie(Trieserver.Trie):
         self.searcher = BallTree(self.embeddings, leaf_size=10)
         print ("Ready to use.")
 
-    def next_words(self, word):
+    def _next_words(self, word):
         """
         Given an input return the next most relevant words contextually.
         :param word: str
         :return: List[str]
         """
+        if word not in self.vocab_int:
+            return []
         index = self.vocab_int[word]
-        neighbors = self.searcher.query([self.embeddings[index]], k=5, return_distance=False)
+        neighbors = self.searcher.query([self.embeddings[index]], k=10, return_distance=False)
         res = []
         for neighbor in list(neighbors.flatten()):
             res.append(self.int_vocab[neighbor])
@@ -63,10 +65,12 @@ class AdvTrie(Trieserver.Trie):
         basic_results = super().search(search_term, from_adv_app=from_adv_app)
         corrections = []
         if len(search_term) > 0:
-            corrections = self.checker.most_likely_replacements(search_term.split()[-1],
-                                                                self.num_corrections)
+            target = search_term.split()[-1]
+            corrections = self.checker.most_likely_replacements(target, self.num_corrections)
+            next_words = self._next_words(target)
         self.insertLogger.debug('basic results are {}'.format(str(basic_results)))
         corrections = [word for word in corrections if word not in basic_results]
+        next_words = [word for word in next_words if word not in basic_results and word not in corrections]
 
         for word in corrections[:AdvTrie.NUM_CORRECTIONS_TO_INSERT]:
             super().insert(word, isword=True, from_db=False)
@@ -76,7 +80,7 @@ class AdvTrie(Trieserver.Trie):
             self.search_count = 0
             self.update_top_results()
 
-        return list(set(corrections + basic_results))[:self.max_total_res]
+        return list(set(corrections + basic_results))[:self.max_total_res] + next_words[:2]
 
     @property
     def num_corrections(self):

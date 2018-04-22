@@ -5,6 +5,7 @@ import yaml
 
 from nltk.corpus import words as en_corpus
 from py2neo import Node, NodeSelector
+from src.Trienode import TrieNode
 
 from . import Database
 from . import Trienode
@@ -235,7 +236,8 @@ class Trie:
         """
         def dfs(node):
             if len(node.children) == 0:
-                Trie.update_parent(node)
+                Trie.update_parent_new(node, Counter())
+                return
             for child in node.children:
                 dfs(node.children[child])
         dfs(self.root)
@@ -245,7 +247,94 @@ class Trie:
         d = Counter()
         while node:
             if node.isWord:
-                d[node.prefix] += node.count
+                d[node.prefix] = node.count
+                node.count = 0      # reset count on the term
             node.top_results.update(d)
-            node.count = 0
             node = node.parent
+
+    @staticmethod
+    def update_parent_new(node, d):
+        if node.isWord:
+            d[node.prefix] = node.count
+            node.count = 0
+        node.top_results.update(d)
+        if node.parent:
+            Trie.update_parent_new(node.parent, d)
+
+    @staticmethod
+    def counter_to_str(cnt):
+        """
+        Serialize top 10 results from counter to string
+        :param cnt: collections.Counter
+        :return: str
+        """
+        top_res = cnt.most_common(10)
+        res = []
+        for term, cnt in top_res:
+            res.extend([term, str(cnt)])
+        return " ".join(res)
+
+    @staticmethod
+    def counter_deserialization(s):
+        """
+        Convert serialized Counter to object
+        :param s: str
+        :return: collections.Counter
+        """
+        counts = s.split()
+        idx = 0
+        counter = Counter()
+        while idx < len(counts):
+            counter[counts[idx]] = int(counts[idx+1])
+            idx += 2
+        return counter
+
+    def server_serialization(self):
+        """
+        Serialize the trie server.
+        Records information such as prefix, isWord, number of child nodes and serialized top 10 results.
+        The purpose of this function is for rebuilding Trie in case of server failure.
+        :return: List[List[str]]
+        """
+        def dfs(node):
+            nonlocal data
+            if node is None:
+                return
+            top_results = Trie.counter_to_str(node.top_results)
+            isword = '1' if node.isWord else '0'
+            data.append([node.prefix, isword, top_results, str(len(node.children))])
+            for child in node.children:
+                dfs(node.children[child])
+        data = []
+        dfs(self.root)
+        return data
+
+    @staticmethod
+    def server_deserialization(s):
+        """
+        Trie server deserialization
+        :param s: List[List[str]], serialized Trie server
+        :return: TrieNode
+        """
+        def build_trie(node, num_children, index):
+            if num_children == 0:
+                return index
+            for _ in range(num_children):
+                prefix, isword, top_results, num_children_str = s[index]
+                # create new TrieNode
+                isword = True if isword == '1' else False
+                top_results = Trie.counter_deserialization(top_results)
+                new_node = TrieNode(prefix=prefix, is_word=isword)
+                new_node.top_results = top_results
+                new_node.parent = node
+                node.children[prefix[-1]] = new_node
+                index = build_trie(new_node, int(num_children_str), index+1)
+            return index
+
+        prefix, isword, top_results, num_children_str = s[0]
+        isword = True if isword == '1' else False
+        top_results = Trie.counter_deserialization(top_results)
+        root = TrieNode(prefix=prefix, is_word=isword)
+        root.top_results = top_results
+        build_trie(root, int(num_children_str), 1)
+        return root
