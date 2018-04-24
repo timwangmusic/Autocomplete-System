@@ -15,7 +15,7 @@ class AdvTrie(Trieserver.Trie):
     def __init__(self, num_corrections=10, num_basic_results=10,
                  home_dir="/Users/Weihe/Dropbox/Auto_complete_system/src",
                  embedding_json="embedding_res.json",
-                 vocab_int_json="vocab_to_int.json"):
+                 vocab_int_json="vocab_int.json"):
         super().__init__(num_res_return=num_basic_results)
 
         embedding_json = path.join(home_dir, embedding_json)

@@ -3,7 +3,7 @@ import logging
 import logging.config
 import yaml
 
-from nltk.corpus import words as en_corpus
+# from nltk.corpus import words as en_corpus
 from py2neo import Node, NodeSelector
 from src.Trienode import TrieNode
 
@@ -14,7 +14,7 @@ from . import Trienode
 class Trie:
     """Returns top 10 results to the user.
      Results may be outdated before calling update trie function."""
-    english_words = set(en_corpus.words())
+    # english_words = set(en_corpus.words())
     trie_index = 0
     trie_update_frequency = 1
 
@@ -173,8 +173,8 @@ class Trie:
         if len(word.split()) > 1:
             return None
 
-        if word in Trie.english_words:
-            self.vocab.add(word)
+        # if word in Trie.english_words:
+        #     self.vocab.add(word)
 
         cur = self.root
 
