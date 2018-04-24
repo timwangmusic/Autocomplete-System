@@ -6,5 +6,7 @@ python:
 install:
   - pip install py2neo
   - pip install PyYAML
+  - pip install sklearn
+  - pip install numpy
 
 script: pytest

@@ -18,14 +18,13 @@ class Trie:
     trie_index = 0
     trie_update_frequency = 1
 
-    def __init__(self, db_handler=Database.DatabaseHandler(), num_res_return=10):
+    def __init__(self, num_res_return=10):
         """
-        :param db_handler: Neo4j database controller
         :param num_res_return: maximum number of results to return to user
         """
+        self.db = Database.DatabaseHandler()
         self.root = Trienode.TrieNode(prefix='', is_word=False)
         self.vocab = set()
-        self.db = db_handler
         self.node_count = 1
         self.selector = NodeSelector(self.db.graph)
         self.search_count = 0   # tracking number of search before performing trie update
@@ -58,7 +57,7 @@ class Trie:
         self._num_res_return = val
 
     def app_reset(self):
-        self.__init__(db_handler=Database.DatabaseHandler())
+        self.__init__()
 
     @classmethod
     def _get_next_trie_index(cls):
