@@ -5,6 +5,6 @@ python:
 
 install:
   - pip install py2neo
-  - pip install yaml
+  - pip install PyYAML
 
 script: pytest
