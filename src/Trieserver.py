@@ -3,7 +3,7 @@ import logging
 import logging.config
 import yaml
 
-# from nltk.corpus import words as en_corpus
+from nltk.corpus import words as en_corpus
 from py2neo import Node, NodeSelector
 from src.Trienode import TrieNode
 
@@ -12,9 +12,9 @@ from . import Trienode
 
 
 class Trie:
-    """Returns top 10 results to the user.
+    """Returns top results to the user.
      Results may be outdated before calling update trie function."""
-    # english_words = set(en_corpus.words())
+    english_words = set(en_corpus.words())
     trie_index = 0
     trie_update_frequency = 1
 
@@ -70,7 +70,6 @@ class Trie:
         This method removes data from database and build new graph with in-memory data in application server.
         :return: None
         """
-        # self.db.graph.run('match(n:TrieNode) detach delete n')
         self.db.graph.delete_all()  # delete all existing nodes and relationships
         queue = deque()
         tx = self.db.graph.begin()
@@ -83,6 +82,7 @@ class Trie:
         tx.create(node)     # create root in neo4j
         queue.append((node, self.root))
         count = 0
+
         while queue:
             db_node, cur = queue.popleft()
             for child in cur.children:
@@ -96,9 +96,10 @@ class Trie:
                 tx.create(db_node_child)
                 count += 1
                 tx.create(Database.Parent(db_node, db_node_child))
-                # tx.create(Child(db_node_child, db_node))
+
         tx.commit()
         self.logger.info('Finished updating database. Number of nodes created is %d' % count)
+
         if tx.finished():
             self.logger.info('Transaction finished.')
 
@@ -172,8 +173,8 @@ class Trie:
         if len(word.split()) > 1:
             return None
 
-        # if word in Trie.english_words:
-        #     self.vocab.add(word)
+        if word in Trie.english_words:
+            self.vocab.add(word)
 
         cur = self.root
 
