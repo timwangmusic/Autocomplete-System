@@ -98,7 +98,7 @@ class Trie:
                 tx.create(Database.Parent(db_node, db_node_child))
 
         tx.commit()
-        self.logger.info('Finished updating database. Number of nodes created is %d' % count)
+        self.logger.info('Finished building database. Number of nodes created is %d' % count)
 
         if tx.finished():
             self.logger.info('Transaction finished.')
