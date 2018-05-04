@@ -18,7 +18,7 @@ class Trie:
     trie_index = 0
     trie_update_frequency = 1
 
-    def __init__(self, num_res_return=10, connect_to_db = True):
+    def __init__(self, num_res_return=10, connect_to_db = True, testing = False):
         """
         :param num_res_return: maximum number of results to return to user
         :param connect_to_db: True if server is connected to a database
@@ -33,11 +33,12 @@ class Trie:
         self.search_count = 0   # tracking number of search before performing trie update
 
         # Logging facilities
-        with open('logging.config', 'r') as f:
-            config = yaml.safe_load(f)
-        logging.config.dictConfig(config)
-        self.logger = logging.getLogger('Trie_db')
-        self.insertLogger = logging.getLogger('Trie_db.insert')
+        if not testing:
+            with open('logging.config', 'r') as f:
+                config = yaml.safe_load(f)
+            logging.config.dictConfig(config)
+            self.logger = logging.getLogger('Trie_db')
+            self.insertLogger = logging.getLogger('Trie_db.insert')
 
         self._num_res_return = num_res_return
 
@@ -103,10 +104,10 @@ class Trie:
                 tx.create(Database.Parent(db_node, db_node_child))
 
         tx.commit()
-        self.logger.info('Finished building database. Number of nodes created is %d' % count)
+        # self.logger.info('Finished building database. Number of nodes created is %d' % count)
 
-        if tx.finished():
-            self.logger.info('Transaction finished.')
+        # if tx.finished():
+            # self.logger.info('Transaction finished.')
 
     def update_db(self):
         """
@@ -178,8 +179,8 @@ class Trie:
         if len(word.split()) > 1:
             return None
 
-        if word in Trie.english_words:
-            self.vocab.add(word)
+        # if word in Trie.english_words:
+            # self.vocab.add(word)
 
         cur = self.root
 
@@ -197,7 +198,7 @@ class Trie:
         else:
             cur.count += 1
 
-        self.insertLogger.debug('Insert used for {}'.format(word))
+        # self.insertLogger.debug('Insert used for {}'.format(word))
         return cur
 
     def search(self, search_term, from_adv_app=False):
