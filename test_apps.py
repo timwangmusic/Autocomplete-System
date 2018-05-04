@@ -7,19 +7,19 @@ def app():
     return Trie(connect_to_db=False, testing=True)
 
 
-def test_insert_single_word():
+def test_insert_single_word(app):
     # test if the last node on the path to the inserted is correct
     node = app.insert('linux', from_db=False)
     assert node.prefix == 'linux'
     assert node.isWord is True
 
 
-def test_insert_multiple_words():
+def test_insert_multiple_words(app):
     node = app.insert("sweet home", from_db=False)
     assert node is None
 
 
-def test_search_with_empty_input():
+def test_search_with_empty_input(app):
     # After insert via search and update, should return overall top results
     app.search('probing')
     app.update_top_results()
@@ -27,14 +27,14 @@ def test_search_with_empty_input():
     assert res[0] == 'probing'
 
 
-def test_search_with_space():
+def test_search_with_space(app):
     # After insert a space, should return an empty list
     app.search(' ')
     app.update_top_results()
     assert app.search(' ') == []
 
 
-def test_search_query_single_word():
+def test_search_query_single_word(app):
     # After insert via search and update, should return the word
     app.search('testing', from_adv_app=False)
     app.update_top_results()
@@ -42,7 +42,7 @@ def test_search_query_single_word():
     assert res[0] == 'testing'
 
 
-def test_search_query_sentence():
+def test_search_query_sentence(app):
     # After insert via search and update, should a list containing all words in the query
     app.search('this is a cool test')
     app.update_top_results()
@@ -52,7 +52,7 @@ def test_search_query_sentence():
         assert word in search_results
 
 
-def test_search_prefix_chain_creation():
+def test_search_prefix_chain_creation(app):
     # insert a word and all prefix nodes should be correctly created
     test_word = "Spectacular"
     prefixes = [test_word[:i] for i in range(len(test_word))]
@@ -100,3 +100,19 @@ def test_search_prefix_chain_creation():
         self.assertTrue(same_tree(self.trie.root, self.new_server.root))
 
 """
+
+def same_tree(app, new_app):
+    def check_property(x, y):
+        return x.prefix == y.prefix and x.children.keys() == y.children.keys() and \
+               x.total_counts() == y.total_counts()
+
+    if app is None and new_app is None:
+        return True
+    elif app is None or new_app is None:
+        return False
+    if not check_property(app, new_app):
+        return False
+    for child_x, child_y in zip(app.children.keys(), new_app.children.keys()):
+        if not same_tree(app.children[child_x], new_app.children[child_y]):
+            return False
+    return True
