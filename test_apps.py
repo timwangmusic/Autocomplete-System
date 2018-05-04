@@ -1,62 +1,69 @@
+import pytest
 from src.Trieserver import Trie
+
+
+@pytest.fixture
+def app():
+    return Trie(connect_to_db=False, testing=True)
 
 
 def test_insert_single_word():
     # test if the last node on the path to the inserted is correct
-    app = Trie(connect_to_db=False, testing=True)
     node = app.insert('linux', from_db=False)
     assert node.prefix == 'linux'
-    assert node.isWord == True
+    assert node.isWord is True
 
 
 def test_insert_multiple_words():
-    app = Trie(connect_to_db=False, testing=True)
     node = app.insert("sweet home", from_db=False)
-    assert node == None
+    assert node is None
+
+
+def test_search_with_empty_input():
+    # After insert via search and update, should return overall top results
+    app.search('probing')
+    app.update_top_results()
+    res = app.search("")
+    assert res[0] == 'probing'
+
+
+def test_search_with_space():
+    # After insert a space, should return an empty list
+    app.search(' ')
+    app.update_top_results()
+    assert app.search(' ') == []
+
+
+def test_search_query_single_word():
+    # After insert via search and update, should return the word
+    app.search('testing', from_adv_app=False)
+    app.update_top_results()
+    res = app.search("")
+    assert res[0] == 'testing'
+
+
+def test_search_query_sentence():
+    # After insert via search and update, should a list containing all words in the query
+    app.search('this is a cool test')
+    app.update_top_results()
+    search_results = set(app.search(""))
+    search_term = 'this is a cool test'.split()
+    for word in search_term:
+        assert word in search_results
+
+
+def test_search_prefix_chain_creation():
+    # insert a word and all prefix nodes should be correctly created
+    test_word = "Spectacular"
+    prefixes = [test_word[:i] for i in range(len(test_word))]
+    app.search(test_word)
+    node = app.root
+    for i in range(len(test_word)):
+        assert node.prefix == prefixes[i]
+        node = node.children[test_word[i]]
+
 
 """
-    def test_search_with_empty_input(self):
-        # After insert via search and update, should return overall top results
-        self.trie.search('probing')
-        self.trie.update_top_results()
-        res = self.trie.search("")
-        self.assertTrue(len(res) > 0)
-
-    def test_search_with_space(self):
-        # After insert a space, should return an empty list
-        self.trie.search(' ')
-        self.trie.update_top_results()
-        res = self.trie.search(' ')
-        self.assertTrue(len(res) == 0)
-
-    def test_search_query_single_word(self):
-        # After insert via search and update, should return the word
-        self.trie.search('testing', from_adv_app=False)
-        self.trie.update_top_results()
-        res = self.trie.search("")
-        self.assertEqual(res[0], 'testing')
-
-    def test_search_query_sentence(self):
-        # After insert via search and update, should a list containing all words in the query
-        self.trie.search('this is a cool test')
-        self.trie.update_top_results()
-        search_results = set(self.trie.search(""))
-        search_term = 'this is a cool test'.split()
-        for word in search_term:
-            self.assertIn(word, search_results)
-
-    def test_search_prefix_chain_creation(self):
-        # insert a word and all prefix nodes should be correctly created
-        test_word = "Spectacular"
-        prefixes = [test_word[:i] for i in range(len(test_word))]
-        self.trie.search(test_word)
-        node = self.trie.root
-        for i in range(len(test_word)):
-            self.assertEqual(node.prefix, prefixes[i])
-            node = node.children[test_word[i]]
-
-
-
    # the following set of tests verifies database functionality
     def update_database_same_word(self):
 

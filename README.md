@@ -1,4 +1,6 @@
 # Auto-complete System
+[![Build Status](https://travis-ci.org/weihesdlegend/Auto-complete-System.svg?branch=master)](https://travis-ci.org/weihesdlegend/Auto-complete-System)
+
 Auto-complete system using Neo4j graph database for storing data and fault tolerance. Return top suggestions to user.
 
 ## **Feature Support**

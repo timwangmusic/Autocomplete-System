@@ -18,7 +18,7 @@ class Trie:
     trie_index = 0
     trie_update_frequency = 1
 
-    def __init__(self, num_res_return=10, connect_to_db = True, testing = False):
+    def __init__(self, num_res_return=10, connect_to_db=True, testing=False):
         """
         :param num_res_return: maximum number of results to return to user
         :param connect_to_db: True if server is connected to a database
