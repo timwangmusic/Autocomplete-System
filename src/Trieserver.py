@@ -18,22 +18,27 @@ class Trie:
     trie_index = 0
     trie_update_frequency = 1
 
-    def __init__(self, num_res_return=10):
+    def __init__(self, num_res_return=10, connect_to_db = True):
         """
         :param num_res_return: maximum number of results to return to user
+        :param connect_to_db: True if server is connected to a database
         """
-        self.db = Database.DatabaseHandler()
+        if connect_to_db:
+            self.db = Database.DatabaseHandler()
+            self.selector = NodeSelector(self.db.graph)
+
         self.root = Trienode.TrieNode(prefix='', is_word=False)
         self.vocab = set()
         self.node_count = 1
-        self.selector = NodeSelector(self.db.graph)
         self.search_count = 0   # tracking number of search before performing trie update
+
         # Logging facilities
         with open('logging.config', 'r') as f:
             config = yaml.safe_load(f)
         logging.config.dictConfig(config)
         self.logger = logging.getLogger('Trie_db')
         self.insertLogger = logging.getLogger('Trie_db.insert')
+
         self._num_res_return = num_res_return
 
     def __str__(self):

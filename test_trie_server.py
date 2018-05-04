@@ -22,8 +22,8 @@ def same_tree(app, new_app):
 
 class TrieServerTest(unittest.TestCase):
     def setUp(self):
-        self.trie = Trie()
-        self.new_server = Trie()
+        self.trie = Trie(connect_to_db=False)
+        self.new_server = Trie(connect_to_db=False)
 
     def test_insert_single_word(self):
         # test if the last node on the path to the inserted is correct
@@ -75,15 +75,16 @@ class TrieServerTest(unittest.TestCase):
             self.assertEqual(node.prefix, prefixes[i])
             node = node.children[test_word[i]]
 
-    # the following set of tests verifies database functionality
+"""
+   # the following set of tests verifies database functionality
     def update_database_same_word(self):
-        """
+        
         1) Search a new word 2 times ans update trie
         2) Build database
         3) Search the same word 5 times and update trie
         4) update database
         5) Verify the count of the word equals 7
-        """
+        
         term = "disneyland"
         for _ in range(2):
             self.trie.search(term)
@@ -97,18 +98,20 @@ class TrieServerTest(unittest.TestCase):
         self.assertEqual(count, 7)
 
     def test_same_tree(self):
-        """
+        
         1) Search a word or couple of words and update trie
         2) Build database
         3) Bring up a new server with data from database
         4) verify both trees are same
-        """
+        
         test_term = "test term"
         self.trie.search(test_term)
         self.trie.update_top_results()
         self.trie.build_db()
         self.new_server.build_trie()
         self.assertTrue(same_tree(self.trie.root, self.new_server.root))
+
+"""
 
 
 

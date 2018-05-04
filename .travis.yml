@@ -8,5 +8,6 @@ install:
   - pip install PyYAML
   - pip install sklearn
   - pip install numpy
+  - pip install nltk
 
 script: pytest
