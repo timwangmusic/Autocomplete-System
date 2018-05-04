@@ -8,7 +8,6 @@ from py2neo import Node, NodeSelector
 from src.Trienode import TrieNode
 
 from . import Database
-from . import Trienode
 
 
 class Trie:
@@ -27,7 +26,7 @@ class Trie:
             self.db = Database.DatabaseHandler()
             self.selector = NodeSelector(self.db.graph)
 
-        self.root = Trienode.TrieNode(prefix='', is_word=False)
+        self.root = TrieNode(prefix='', is_word=False)
         self.vocab = set()
         self.node_count = 1
         self.search_count = 0   # tracking number of search before performing trie update
@@ -40,6 +39,7 @@ class Trie:
             self.logger = logging.getLogger('Trie_db')
             self.insertLogger = logging.getLogger('Trie_db.insert')
 
+        self.testing = testing
         self._num_res_return = num_res_return
 
     def __str__(self):
@@ -104,10 +104,11 @@ class Trie:
                 tx.create(Database.Parent(db_node, db_node_child))
 
         tx.commit()
-        # self.logger.info('Finished building database. Number of nodes created is %d' % count)
+        if not self.testing:
+            self.logger.info('Finished building database. Number of nodes created is %d' % count)
 
-        # if tx.finished():
-            # self.logger.info('Transaction finished.')
+        if self.testing and tx.finished():
+            self.logger.info('Transaction finished.')
 
     def update_db(self):
         """
@@ -187,7 +188,7 @@ class Trie:
         for char in word:
             if char not in cur.children:
                 self.node_count += 1
-                cur.children[char] = Trienode.TrieNode(prefix=cur.prefix+char, parent=cur)
+                cur.children[char] = TrieNode(prefix=cur.prefix+char, parent=cur)
             cur = cur.children[char]
 
         cur.isWord = isword
@@ -198,7 +199,8 @@ class Trie:
         else:
             cur.count += 1
 
-        # self.insertLogger.debug('Insert used for {}'.format(word))
+        if not self.testing:
+            self.insertLogger.debug('Insert used for {}'.format(word))
         return cur
 
     def search(self, search_term, from_adv_app=False):
