@@ -48,6 +48,23 @@ class Trie:
     def __repr__(self):
         return "Trie application server with {} nodes".format(self.node_count)
 
+    def __len__(self):
+        """
+        Return number of nodes in the Trie
+        :return: int
+        """
+        return self.node_count
+
+    def __bool__(self):
+        """
+        Return True if Trie is non-empty
+        :return: bool
+        """
+        return self.node_count > 1
+
+    def __getitem__(self, item):
+        return self.search(item)
+
     # accessor for num_res_return
     @property
     def num_res_return(self):
@@ -234,8 +251,8 @@ class Trie:
             self.search_count = 0
             self.update_top_results()
 
-        result = {word[0] for word in last_node.top_results.most_common(self.num_res_return)}
-        return list(result)
+        result = [word[0] for word in last_node.top_results.most_common(self.num_res_return)]
+        return result
 
     def update_top_results(self):
         """
@@ -268,6 +285,35 @@ class Trie:
         node.top_results.update(d)
         if node.parent:
             Trie.update_parent_new(node.parent, d)
+
+    @classmethod
+    def path_compression(cls, trie):
+        """
+        Compress redundant paths by finding nodes having single child node
+        :param trie: Trie
+        :return: Trie
+        """
+        root = trie.root
+        for child, node in root.children.items():
+            Trie.compress(node)
+        return trie
+
+    @staticmethod
+    def combine(parent):
+        for child, node in parent.children.items():
+            parent.prefix = node.prefix
+            parent.children = node.children
+            parent.isWord = node.isWord
+        return parent
+
+    @staticmethod
+    def compress(node):
+        if len(node.children) == 0:
+            return
+        while not node.isWord and len(node.children) == 1:
+            node = Trie.combine(node)
+        for child, child_node in node.children.items():
+            Trie.compress(child_node)
 
     @staticmethod
     def counter_to_str(cnt):
