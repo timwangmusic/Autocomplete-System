@@ -40,6 +40,8 @@ class Trie:
             logging.config.dictConfig(config)
             self.logger = logging.getLogger('Trie_db')
             self.insertLogger = logging.getLogger('Trie_db.insert')
+        else:
+            self.word_dictionary = set()
 
         self.testing = testing
         self._num_res_return = num_res_return
@@ -237,16 +239,15 @@ class Trie:
             return []
         # for word in _words:
         #     last_node = self._insert(word, from_db=False)
-
-        for idx, word in enumerate(_words):
+        _word_lists = []
+        for word in _words:
+            replacements = None
             if word not in self.word_dictionary:
                 replacements = self.spell_checker.most_likely_replacements(word, num_res=2)
-                _words[idx] = replacements
-            else:
-                _words[idx] = [word]
+            _word_lists.append(replacements)
 
         replacement_list = []
-        Trie.search_helper(_words, 0, [], replacement_list)
+        Trie.search_helper(_word_lists, 0, [], replacement_list)
 
         result = []
         candidates = []

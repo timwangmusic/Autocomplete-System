@@ -15,10 +15,10 @@ lists = [('linux', 'linux'),
          ]
 
 
-@pytest.mark.parametrize(('input_str, expected'), lists)
+@pytest.mark.parametrize('input_str, expected', lists)
 def test_insert_single_word(app, input_str, expected):
     # test if the last node on the path to the inserted is correct
-    node = app.insert(input_str, from_db=False)
+    node = app._insert(input_str, from_db=False)
     assert (node.prefix, node.isWord) == (expected, True)
 
 
@@ -64,6 +64,7 @@ def test_search_prefix_chain_creation(app):
     for i in range(len(test_word)):
         assert node.prefix == prefixes[i]
         node = node.children[test_word[i]]
+
 
 def test_representation_singleword(app):
     # insert a word and test number of nodes in the Trie
