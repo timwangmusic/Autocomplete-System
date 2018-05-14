@@ -8,16 +8,18 @@ def get_app():
     return Trie(connect_to_db=False, testing=True)
 
 
-def test_insert_single_word(app):
+lists = [('linux', 'linux'),
+         ('pneumonoultramicroscopicsilicovolcanoconiosis', 'pneumonoultramicroscopicsilicovolcanoconiosis'),
+         ('democracy', 'democracy'),
+         ('Beethoven-Symphony', 'Beethoven-Symphony'),
+         ]
+
+
+@pytest.mark.parametrize(('input_str, expected'), lists)
+def test_insert_single_word(app, input_str, expected):
     # test if the last node on the path to the inserted is correct
-    node = app.insert('linux', from_db=False)
-    assert node.prefix == 'linux'
-    assert node.isWord is True
-
-
-def test_insert_multiple_words(app):
-    node = app.insert("sweet home", from_db=False)
-    assert node is None
+    node = app.insert(input_str, from_db=False)
+    assert (node.prefix, node.isWord) == (expected, True)
 
 
 def test_search_with_empty_input(app):

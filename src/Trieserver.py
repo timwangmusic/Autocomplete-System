@@ -3,9 +3,10 @@ import logging
 import logging.config
 import yaml
 
-# from nltk.corpus import words as en_corpus
+from nltk.corpus import words as en_corpus
 from py2neo import Node, NodeSelector
 from src.Trienode import TrieNode
+from src.Spell import Spell
 
 from . import Database
 
@@ -24,7 +25,7 @@ class Trie:
         """
         if connect_to_db:
             self.db = Database.DatabaseHandler()
-            self.selector = NodeSelector(self.db.graph)
+            self._selector = NodeSelector(self.db.graph)
 
         self.root = TrieNode(prefix='', is_word=False)
         self.vocab = set()
@@ -33,6 +34,7 @@ class Trie:
 
         # Logging facilities
         if not testing:
+            self.word_dictionary = set(en_corpus.words())
             with open('logging.config', 'r') as f:
                 config = yaml.safe_load(f)
             logging.config.dictConfig(config)
@@ -41,6 +43,7 @@ class Trie:
 
         self.testing = testing
         self._num_res_return = num_res_return
+        self.spell_checker = Spell()
 
     def __str__(self):
         return self.__repr__()
@@ -139,7 +142,7 @@ class Trie:
             """update node info to database"""
             if not node:
                 return
-            db_node = self.selector.select('TrieNode', name=node.prefix).first()
+            db_node = self._selector.select('TrieNode', name=node.prefix).first()
             if not db_node:
                 tx = g.begin()
                 db_node = Node('TrieNode',
@@ -147,7 +150,7 @@ class Trie:
                                isword=node.isWord,
                                count=node.total_counts())
                 tx.create(db_node)
-                parent_db_node = self.selector.select('TrieNode', name=parent.prefix).first()
+                parent_db_node = self._selector.select('TrieNode', name=parent.prefix).first()
                 tx.create(Database.Parent(parent_db_node, db_node))
                 tx.commit()
             else:
@@ -166,20 +169,20 @@ class Trie:
         :return: None
         """
         self.app_reset()
-        root = self.selector.select('ROOT').first()
+        root = self._selector.select('ROOT').first()
         g = self.db.graph
 
         def dfs(node):
             d = dict(node)
             prefix, isword, count = d['name'], d['isword'], d['count']
             if isword:
-                self.insert(prefix, isword, from_db=True, count=count)
+                self._insert(prefix, isword, from_db=True, count=count)
             for rel in g.match(node, rel_type='PARENT'):
                 dfs(rel.end_node())
         dfs(root)
         self.update_top_results()
 
-    def insert(self, word, isword=True, count=0, from_db=False):
+    def _insert(self, word, isword=True, count=0, from_db=False):
         """
         This method inserts a word into the trie. This method should be hidden from user.
         Only method build_trie() and search() should call this method.
@@ -189,17 +192,9 @@ class Trie:
         :param from_db: True if the method is called by build_trie()
         :return: Trie node which correspond to the word inserted
         """
-        try:
-            assert isinstance(word, str), "{} is not a string".format(word)
-        except AssertionError as e:
-            print(str(e))
-            raise
-        if len(word.split()) > 1:
-            return None
 
         # if word in Trie.english_words:
-            # self.vocab.add(word)
-
+        # self.vocab.add(word)
         cur = self.root
 
         for char in word:
@@ -230,19 +225,34 @@ class Trie:
         :param from_adv_app: bool
         :return: List[str]
         """
-        last_node = None
-        if search_term == '':
-            last_node = self.root
-        else:
-            try:
-                words = search_term.split()
-                if len(words) == 0:
-                    return []
-                for word in words:
-                    last_node = self.insert(word, from_db=False)
-            except AttributeError as e:
-                print('The search term {} is not a string'.format(search_term, str(e)))
-                return
+        if not isinstance(search_term, str):
+            raise TypeError("{} is not a string".format(search_term))
+
+        # last_node = None
+        # if search_term == '':
+        #     last_node = self.root
+
+        _words = search_term.split()
+        if len(_words) == 0:
+            return []
+        # for word in _words:
+        #     last_node = self._insert(word, from_db=False)
+
+        for idx, word in enumerate(_words):
+            if word not in self.word_dictionary:
+                replacements = self.spell_checker.most_likely_replacements(word, num_res=2)
+                _words[idx] = replacements
+            else:
+                _words[idx] = [word]
+
+        replacement_list = []
+        Trie.search_helper(_words, 0, [], replacement_list)
+
+        result = []
+        candidates = []
+        for words in replacement_list:
+            last_node = self._insert(' '.join(words), from_db=False)
+            candidates.append(last_node)
 
         if not from_adv_app:
             self.search_count += 1
@@ -251,8 +261,22 @@ class Trie:
             self.search_count = 0
             self.update_top_results()
 
-        result = [word[0] for word in last_node.top_results.most_common(self.num_res_return)]
-        return result
+        # result = [word[0] for word in last_node.top_results.most_common(self.num_res_return)]
+        for node in candidates:
+            result.extend(node.top_results.most_common(self.num_res_return))
+        result.sort(key=lambda x: x[1])
+        res = [word_freq[0] for word_freq in result]
+        return res[:self.num_res_return]
+
+    @staticmethod
+    def search_helper(word_list, idx, path, res):
+        if idx == len(word_list):
+            res.append(list(path))
+            return
+        for word in word_list[idx]:
+            path.append(word)
+            Trie.search_helper(word_list, idx+1, path, res)
+            path.pop()
 
     def update_top_results(self):
         """
@@ -374,15 +398,15 @@ class Trie:
             if num_children == 0:
                 return index
             for _ in range(num_children):
-                prefix, isword, top_results, num_children_str = s[index]
+                _prefix, _isword, _top_results, _num_children_str = s[index]
                 # create new TrieNode
-                isword = True if isword == '1' else False
-                top_results = Trie.counter_deserialization(top_results)
-                new_node = TrieNode(prefix=prefix, is_word=isword)
-                new_node.top_results = top_results
+                _isword = True if _isword == '1' else False
+                _top_results = Trie.counter_deserialization(_top_results)
+                new_node = TrieNode(prefix=_prefix, is_word=_isword)
+                new_node.top_results = _top_results
                 new_node.parent = node
-                node.children[prefix[-1]] = new_node
-                index = build_trie(new_node, int(num_children_str), index+1)
+                node.children[_prefix[-1]] = new_node
+                index = build_trie(new_node, int(_num_children_str), index+1)
             return index
 
         prefix, isword, top_results, num_children_str = s[0]

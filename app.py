@@ -6,8 +6,8 @@ from pathlib import Path
 src_dir = Path(__file__).resolve().parents[1]
 sys.path.append(str(src_dir))
 
-from src.advanced_trie_server import AdvTrie as Trie
-
+# from src.advanced_trie_server import AdvTrie as Trie
+from src.Trieserver import Trie
 
 class Application(tk.Frame):
     def __init__(self, master=None):

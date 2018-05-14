@@ -6,7 +6,5 @@ class Parent(Relationship):
 
 
 class DatabaseHandler:
-    def __init__(self, username='admin', password='admin'):
-        self.username = username
-        self.password = password
-        self.graph = Graph(password=password)
+    def __init__(self, username='neo4j', password='admin', bolt=7687):
+        self.graph = Graph(user=username, password=password, bolt_port=bolt)
