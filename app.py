@@ -1,4 +1,5 @@
 import tkinter as tk
+from src.Server import Server
 
 import sys
 from pathlib import Path
@@ -7,12 +8,12 @@ src_dir = Path(__file__).resolve().parents[1]
 sys.path.append(str(src_dir))
 
 # from src.advanced_trie_server import AdvTrie as Trie
-from src.Trieserver import Trie
+
 
 class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
-        self.app = Trie()
+        self.app = Server()
 
         self.text_box = tk.Entry()
         self.text_box.pack(side='top')
@@ -23,7 +24,7 @@ class Application(tk.Frame):
         self.text_box["textvariable"] = self.text
         self.text_box.bind("<Key-Return>", self.search)
 
-        self.search_res = tk.Text(font=('Verdana',10))
+        self.search_res = tk.Text(font=('Verdana', 10))
         self.search_res.pack()
 
         self.quit = tk.Button(text="QUIT", fg="pink", bg='blue',

@@ -1,4 +1,4 @@
-from . import Trieserver
+from . import Server
 from . import Spell
 from sklearn.neighbors import BallTree
 import numpy as np
@@ -6,7 +6,7 @@ import json
 from os import path
 
 
-class AdvTrie(Trieserver.Trie):
+class AdvTrie(Server.Server):
     """This class provides advanced functionality such as providing auto-corrections as suggestions."""
     MAX_CORRECTIONS = 10
     NUM_CORRECTIONS_TO_INSERT = MAX_CORRECTIONS // 2
@@ -27,7 +27,7 @@ class AdvTrie(Trieserver.Trie):
         self.max_total_res = min(10, num_basic_results+num_corrections)
 
         # load json files
-        print ("Loading JSON files, may take a while.")
+        print("Loading JSON files, may take a while.")
         with open(embedding_json, 'r') as read_file:
             self.embeddings = np.array(json.load(read_file))
         with open(vocab_int_json, 'r') as read_file:
@@ -35,9 +35,9 @@ class AdvTrie(Trieserver.Trie):
         self.int_vocab = {i: word for word, i in self.vocab_int.items()}
 
         # train k nearest neighbor model
-        print ("Training BallTree k-nearest neighbor searcher...")
+        print("Training BallTree k-nearest neighbor searcher...")
         self.searcher = BallTree(self.embeddings, leaf_size=10)
-        print ("Ready to use.")
+        print("Ready to use.")
 
     def _next_words(self, word):
         """
@@ -64,6 +64,7 @@ class AdvTrie(Trieserver.Trie):
         """
         basic_results = super().search(search_term, from_adv_app=from_adv_app)
         corrections = []
+        next_words = None
         if len(search_term) > 0:
             target = search_term.split()[-1]
             corrections = self.checker.most_likely_replacements(target, self.num_corrections)
@@ -73,7 +74,7 @@ class AdvTrie(Trieserver.Trie):
         next_words = [word for word in next_words if word not in basic_results and word not in corrections]
 
         for word in corrections[:AdvTrie.NUM_CORRECTIONS_TO_INSERT]:
-            super().insert(word, isword=True, from_db=False)
+            super().search(word, from_adv_app=True)
 
         self.search_count += 1
         if self.search_count >= AdvTrie.trie_update_frequency:
