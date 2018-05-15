@@ -39,7 +39,7 @@ lists = [
 @pytest.mark.parametrize('input_str, expected', lists)
 def test_insert_single_word(app, input_str, expected):
     # Test if the last node on the path to the inserted is correct
-    node = app._Trie__insert(input_str, from_db=False)
+    node = app._Server__insert(input_str, from_db=False)
     assert (node.prefix, node.isWord) == (expected, True)
 
 
@@ -79,5 +79,5 @@ def test_serialization(app):
 def test_server_reconstruction_similarity(app):
     app.search('simplicity is the ultimate sophistication')
     s = app.server_serialization()
-    new_app = Server.server_deserialization(s)
+    new_app = Server.server_deserialization(s, testing=True)
     assert new_app.server_serialization() == s

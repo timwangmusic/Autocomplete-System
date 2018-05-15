@@ -388,12 +388,12 @@ class Server:
         return data
 
     @staticmethod
-    def server_deserialization(s, connect_to_db=False):
+    def server_deserialization(s, connect_to_db=False, testing=False):
         """
         Trie server deserialization
         :param s: List[List[str]], serialized Trie server
         :param connect_to_db: True if connect to database
-        :return: TrieNode
+        :return: Server
         """
         def build_trie(node, num_children, index):
             nonlocal root
@@ -416,4 +416,4 @@ class Server:
 
         root = None
         build_trie(None, 1, 0)
-        return Server(root=root, connect_to_db=connect_to_db)
+        return Server(root=root, connect_to_db=connect_to_db, testing=testing)
