@@ -66,6 +66,13 @@ def test_search_query_sentence(app):
     assert res == ['this is a cool test']
 
 
+def test_delete_word(app):
+    # After insert word and delete it, expect the whole trie only has root
+    app.search('time')
+    app.delete('time')
+    assert app.root.children == {}
+
+
 def test_serialization(app):
     # After search a term, perform path compression and then serialize the server
     app.search('time machine is here')

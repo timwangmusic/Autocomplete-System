@@ -14,29 +14,33 @@ class AdvTrie(Server.Server):
 
     def __init__(self, num_corrections=10, num_basic_results=10,
                  home_dir="/Users/Weihe/Dropbox/Auto_complete_system/src",
-                 embedding_json="embedding_res.json",
-                 vocab_int_json="vocab_int.json"):
-        super().__init__(num_res_return=num_basic_results)
+                 embedding_json=None,
+                 vocab_int_json=None, *args, **kwargs):
+        super().__init__(num_res_return=num_basic_results, *args, **kwargs)
 
-        embedding_json = path.join(home_dir, embedding_json)
-        vocab_int_json = path.join(home_dir, vocab_int_json)
+        self.use_embedding = False
+
+        if embedding_json and vocab_int_json:
+            self.use_embedding = True
+            embedding_json = path.join(home_dir, embedding_json)
+            vocab_int_json = path.join(home_dir, vocab_int_json)
+            # load json files
+            print("Loading JSON files, may take a while.")
+            with open(embedding_json, 'r') as read_file:
+                self.embeddings = np.array(json.load(read_file))
+            with open(vocab_int_json, 'r') as read_file:
+                self.vocab_int = json.load(read_file)
+            self.int_vocab = {i: word for word, i in self.vocab_int.items()}
+
+            # train k nearest neighbor model
+            print("Training BallTree k-nearest neighbor searcher...")
+            self.searcher = BallTree(self.embeddings, leaf_size=10)
 
         self.checker = Spell.Spell()
         self.num_corrections = num_corrections
         self.num_basic_search_results = num_basic_results
         self.max_total_res = min(10, num_basic_results+num_corrections)
 
-        # load json files
-        print("Loading JSON files, may take a while.")
-        with open(embedding_json, 'r') as read_file:
-            self.embeddings = np.array(json.load(read_file))
-        with open(vocab_int_json, 'r') as read_file:
-            self.vocab_int = json.load(read_file)
-        self.int_vocab = {i: word for word, i in self.vocab_int.items()}
-
-        # train k nearest neighbor model
-        print("Training BallTree k-nearest neighbor searcher...")
-        self.searcher = BallTree(self.embeddings, leaf_size=10)
         print("Ready to use.")
 
     def _next_words(self, word):
@@ -45,7 +49,7 @@ class AdvTrie(Server.Server):
         :param word: str
         :return: List[str]
         """
-        if word not in self.vocab_int:
+        if not self.use_embedding or word not in self.vocab_int:
             return []
         index = self.vocab_int[word]
         neighbors = self.searcher.query([self.embeddings[index]], k=10, return_distance=False)

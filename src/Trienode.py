@@ -8,6 +8,7 @@ class TrieNode:
         :param prefix: prefix of this node.
         :param parent: parent node in the trie
         :param is_word: True if the path from root to this node is a word.
+        # :param max_res_retain: maximum number of results in top_results
         """
         self.prefix = prefix
         self.children = dict()

@@ -56,7 +56,7 @@ class Server:
         return self.__repr__()
 
     def __repr__(self):
-        return "Trie application server with {x_number_of} nodes".format(x_number_of=self.node_count)
+        return f"Trie application server with {self.node_count} nodes"
 
     def __len__(self):
         """
@@ -132,7 +132,8 @@ class Server:
 
         tx.commit()
         if not self.testing:
-            self.logger.info('Finished building database. Number of nodes created is {count}'.format(count=count))
+            # self.logger.info('Finished building database. Number of nodes created is {count}'.format(count=count))
+            self.logger.info(f'Finished building database. Number of nodes created is {count}')
 
         if self.testing and tx.finished():
             self.logger.info('Transaction finished.')
@@ -219,8 +220,55 @@ class Server:
             cur.count += 1
 
         if not self.testing:
-            self.insertLogger.debug('Insert used for {word}'.format(word=word))
+            # self.insertLogger.debug('Insert used for {word}'.format(word=word))
+            self.insertLogger.debug(f'Insert used for {word}')
+
         return cur
+
+    def delete(self, term):
+        """
+        Search the specified term and delete the node if found and all nodes in the subtree.
+        :param term: str
+        :return: None
+        """
+        target_node = self.root
+        for letter in term:
+            if letter not in target_node.children:
+                return None
+            target_node = target_node.children[letter]
+
+        words_to_del = self.__delete_helper(target_node)
+
+        last_letter = term[-1]
+        target_node.parent.children.pop(last_letter)
+
+        start_node = target_node.parent
+
+        while start_node and start_node.parent and not start_node.isWord:
+            last_letter = start_node.prefix[-1]
+            start_node.parent.children.pop(last_letter)
+            start_node = start_node.parent
+
+        while start_node:
+            for word in words_to_del:
+                start_node.top_results.pop(word, None)
+            start_node = start_node.parent
+
+    def __delete_helper(self, node):
+        """
+        Breadth-first search to find all children nodes that are words
+        :param node: TrieNode, subtree root
+        :return: set(str)
+        """
+        q = deque([node])
+        res = set()
+        while q:
+            cur = q.popleft()
+            if cur.isWord:
+                res.add(cur.prefix)
+            for _, child in cur.children.items():
+                q.append(child)
+        return res
 
     def search(self, search_term, from_adv_app=False):
         """
@@ -301,7 +349,9 @@ class Server:
         if node.isWord:
             d[node.prefix] = node.count
             node.count = 0
+        # temp = node.total_counts()
         node.top_results.update(d)
+        # node.set_total_counts(temp)
         if node.parent:
             Server.update_parent_new(node.parent, d)
 
@@ -393,6 +443,7 @@ class Server:
         Trie server deserialization
         :param s: List[List[str]], serialized Trie server
         :param connect_to_db: True if connect to database
+        :param testing: True if in testing mode
         :return: Server
         """
         def build_trie(node, num_children, index):
