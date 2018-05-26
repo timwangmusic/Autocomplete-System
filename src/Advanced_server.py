@@ -81,7 +81,7 @@ class AdvTrie(Server.Server):
             super().search(word, from_adv_app=True)
 
         self.search_count += 1
-        if self.search_count >= AdvTrie.trie_update_frequency:
+        if self.search_count >= AdvTrie.server_update_frequency:
             self.search_count = 0
             self.update_top_results()
 

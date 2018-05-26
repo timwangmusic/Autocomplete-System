@@ -48,3 +48,7 @@ class Analyzer:
             csv_writer = csv.writer(file)
             for word, count in overall_data.items():
                 csv_writer.writerow((word, count))
+
+if __name__=='__main__':
+    analyzer = Analyzer()
+    analyzer.generate_csv(log=None)

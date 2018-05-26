@@ -11,11 +11,19 @@ from src.Spell import Spell
 from . import Database
 
 
+class BasicValueError(ValueError):
+    pass
+
+
+class ReturnResultValueLessThanOne(BasicValueError):
+    pass
+
+
 class Server:
     """Returns top results to the user.
      Results may be outdated before calling update trie function."""
-    trie_index = 0
-    trie_update_frequency = 1
+    server_index = 0
+    server_update_frequency = 1
 
     def __init__(self, num_res_return=10, root=None, connect_to_db=True, testing=False):
         """
@@ -86,7 +94,7 @@ class Server:
 
     def __set_num_res_return(self, val):
         if val < 1:
-            raise ValueError('should return at least 1 result.')
+            raise ReturnResultValueLessThanOne('should return at least 1 result.')
         self._num_res_return = val
 
     def app_reset(self):
@@ -94,8 +102,8 @@ class Server:
 
     @classmethod
     def _get_next_trie_index(cls):
-        result = Server.trie_index
-        Server.trie_index += 1
+        result = Server.server_index
+        Server.server_index += 1
         return result
 
     def build_db(self):
@@ -237,7 +245,7 @@ class Server:
                 return None
             target_node = target_node.children[letter]
 
-        words_to_del = self.__delete_helper(target_node)
+        words_to_del = Server.__delete_helper(target_node)
 
         last_letter = term[-1]
         target_node.parent.children.pop(last_letter)
@@ -254,7 +262,8 @@ class Server:
                 start_node.top_results.pop(word, None)
             start_node = start_node.parent
 
-    def __delete_helper(self, node):
+    @staticmethod
+    def __delete_helper(node):
         """
         Breadth-first search to find all children nodes that are words
         :param node: TrieNode, subtree root
@@ -310,7 +319,7 @@ class Server:
         if not from_adv_app:
             self.search_count += 1
 
-        if self.search_count >= Server.trie_update_frequency and not from_adv_app:
+        if self.search_count >= Server.server_update_frequency and not from_adv_app:
             self.search_count = 0
             self.update_top_results()
 
