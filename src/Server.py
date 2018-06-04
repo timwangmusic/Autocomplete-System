@@ -25,13 +25,14 @@ class Server:
     server_index = 0
     server_update_frequency = 1
 
-    def __init__(self, num_res_return=10, root=None, connect_to_db=True, testing=False):
+    def __init__(self, num_res_return=10, root=None, connect_to_db=True, testing=False, node_count=1):
         """
         :param num_res_return: maximum number of results to return to user
         :param root: Trienode
         :param connect_to_db: True if server is connected to a database
         :param testing: True if server constructed in test scripts
         """
+        self.__class__.server_index += 1
         if connect_to_db:
             self.db = Database.DatabaseHandler()
             self._selector = NodeSelector(self.db.graph)
@@ -42,7 +43,7 @@ class Server:
             self.root = root
 
         self.vocab = set()
-        self.node_count = 1
+        self.node_count = node_count
         self.search_count = 0   # tracking number of search before performing trie update
 
         # Logging facilities
@@ -101,10 +102,8 @@ class Server:
         self.__init__()
 
     @classmethod
-    def _get_next_trie_index(cls):
-        result = Server.server_index
-        Server.server_index += 1
-        return result
+    def _get_num_server_instances(cls):
+        return cls.server_index
 
     def build_db(self):
         """
@@ -455,8 +454,9 @@ class Server:
         :param testing: True if in testing mode
         :return: Server
         """
+        node_count = 0
         def build_trie(node, num_children, index):
-            nonlocal root
+            nonlocal root, node_count
             if num_children == 0:
                 return index
             for _ in range(num_children):
@@ -471,9 +471,10 @@ class Server:
                     node.children[_prefix[-1]] = new_node
                 if index == 0:
                     root = new_node
+                node_count += 1
                 index = build_trie(new_node, int(_num_children_str), index+1)
             return index
 
         root = None
         build_trie(None, 1, 0)
-        return Server(root=root, connect_to_db=connect_to_db, testing=testing)
+        return Server(root=root, connect_to_db=connect_to_db, testing=testing, node_count=node_count)
