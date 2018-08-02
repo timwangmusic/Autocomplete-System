@@ -385,7 +385,7 @@ class Server:
         :param server: Server
         :return: None
         """
-        root = server.root
+        root = server.__root
         for child, node in root.children.items():
             Server.__compress(node)
 

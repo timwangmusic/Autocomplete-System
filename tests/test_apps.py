@@ -66,13 +66,6 @@ def test_search_query_sentence(app):
     assert res == ['this is a cool test']
 
 
-def test_delete_word(app):
-    # After insert word and delete it, expect the whole trie only has root
-    app.search('time')
-    app.delete('time')
-    assert app.root.children == {}
-
-
 def test_delete_words(app):
     # Search multiple words and their prefixes. Delete words to check if prefixes intact.
     app.search('timing')
@@ -81,7 +74,7 @@ def test_delete_words(app):
     app.search('interesting')
     app.search('interest')
     app.delete('interesting')
-    assert app.node_count == 9
+    assert app.node_count == 12
 
 
 def test_serialization(app):
