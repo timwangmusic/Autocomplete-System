@@ -4,7 +4,7 @@ import logging.config
 import yaml
 
 # from nltk.corpus import words as en_corpus
-from py2neo import Node, NodeSelector
+from py2neo import Node, NodeMatcher
 from src.Trienode import TrieNode
 from src.Spell import Spell
 
@@ -35,7 +35,7 @@ class Server:
         self.__class__.server_index += 1
         if connect_to_db:
             self.db = Database.DatabaseHandler()
-            self._selector = NodeSelector(self.db.graph)
+            self._selector = NodeMatcher(self.db.graph)
 
         if root is None:
             self.__root = TrieNode(prefix='', is_word=False)
@@ -161,7 +161,7 @@ class Server:
             """update node info to database"""
             if not node:
                 return
-            db_node = self._selector.select('TrieNode', name=node.prefix).first()
+            db_node = self._selector.match('TrieNode', name=node.prefix).first()
             if not db_node:
                 tx = g.begin()
                 db_node = Node('TrieNode',
@@ -169,7 +169,7 @@ class Server:
                                isword=node.isWord,
                                count=node.total_counts())
                 tx.create(db_node)
-                parent_db_node = self._selector.select('TrieNode', name=parent.prefix).first()
+                parent_db_node = self._selector.match('TrieNode', name=parent.prefix).first()
                 tx.create(Database.Parent(parent_db_node, db_node))
                 tx.commit()
             else:
@@ -188,7 +188,7 @@ class Server:
         :return: None
         """
         self.app_reset()
-        root = self._selector.select('ROOT').first()
+        root = self._selector.match('ROOT').first()
         g = self.db.graph
 
         def dfs(node):
