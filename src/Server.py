@@ -38,9 +38,9 @@ class Server:
             self._selector = NodeSelector(self.db.graph)
 
         if root is None:
-            self.root = TrieNode(prefix='', is_word=False)
+            self.__root = TrieNode(prefix='', is_word=False)
         else:
-            self.root = root
+            self.__root = root
 
         self.vocab = set()
         self.node_count = node_count
@@ -105,6 +105,10 @@ class Server:
     def _get_num_server_instances(cls):
         return cls.server_index
 
+    def top_results(self, num_results=10):
+        res = self.__root.top_results.most_common(num_results)
+        return [word for word, count in res]
+
     def build_db(self):
         """
         This method removes data from database and build new graph with in-memory data in application server.
@@ -118,9 +122,9 @@ class Server:
                     isword=False,
                     name='',
                     )
-        node['count'] = self.root.total_counts()
+        node['count'] = self.__root.total_counts()
         tx.create(node)     # create root in neo4j
-        queue.append((node, self.root))
+        queue.append((node, self.__root))
         count = 0
 
         while queue:
@@ -150,7 +154,7 @@ class Server:
         Update database with latest application server usage
         :return: None
         """
-        root = self.root
+        root = self.__root
         g = self.db.graph
 
         def dfs(node, parent):
@@ -210,7 +214,7 @@ class Server:
 
         # if word in Trie.english_words:
         # self.vocab.add(word)
-        cur = self.root
+        cur = self.__root
 
         for char in word:
             if char not in cur.children:
@@ -234,28 +238,38 @@ class Server:
 
     def delete(self, term):
         """
-        Search the specified term and delete the node if found and all nodes in the subtree.
+        Search the specified term and delete the node if found.
+        Also delete nodes in the subtree.
         :param term: str
         :return: None
         """
-        target_node = self.root
+        target_node = self.__root
         for letter in term:
             if letter not in target_node.children:
-                return None
+                return
             target_node = target_node.children[letter]
 
-        words_to_del = Server.__delete_helper(target_node)
+        # if target node is not a word, meaning that the term does not exist
+        if not target_node.isWord:
+            return
 
+        words_to_del, total_deleted = Server.__delete_helper(target_node)
+
+        self.node_count -= total_deleted
+
+        # delete subtree rooted at the node contains the term
         last_letter = term[-1]
         target_node.parent.children.pop(last_letter)
 
+        # delete parent nodes that do not contain whole term
         start_node = target_node.parent
-
         while start_node and start_node.parent and not start_node.isWord:
             last_letter = start_node.prefix[-1]
             start_node.parent.children.pop(last_letter)
+            self.node_count -= 1
             start_node = start_node.parent
 
+        # remove all deleted terms from the top results of parent nodes of the target node
         while start_node:
             for word in words_to_del:
                 start_node.top_results.pop(word, None)
@@ -265,27 +279,30 @@ class Server:
     def __delete_helper(node):
         """
         Breadth-first search to find all children nodes that are words
-        :param node: TrieNode, subtree root
-        :return: set(str)
+        :param node: TrieNode
+            root of subtree
+        :return: set(str), int
+            terms delete and total number of nodes deleted
         """
         q = deque([node])
         res = set()
+        node_count = 0
         while q:
             cur = q.popleft()
+            node_count += 1
             if cur.isWord:
                 res.add(cur.prefix)
             for _, child in cur.children.items():
                 q.append(child)
-        return res
+        return res, node_count
 
-    def search(self, search_term, from_adv_app=False):
+    def search(self, search_term):
         """
         API for clients to get a list of top suggestions.
         The input may be a sentence, with words separated by space.
         Search top results for entire sentence may not make sense.
         Current design returns top results only based on last word in a sentence.
         :param search_term: str
-        :param from_adv_app: bool
         :return: List[str]
         """
         if not isinstance(search_term, str):
@@ -314,19 +331,17 @@ class Server:
         for words in replacement_list:
             last_node = self.__insert(' '.join(words), from_db=False)
             candidates.append(last_node)
-
-        if not from_adv_app:
             self.search_count += 1
 
-        if self.search_count >= Server.server_update_frequency and not from_adv_app:
+        if self.search_count >= Server.server_update_frequency:
             self.search_count = 0
             self.update_top_results()
 
         # result = [word[0] for word in last_node.top_results.most_common(self.num_res_return)]
         for node in candidates:
             result.extend(node.top_results.most_common(self.num_res_return))
-        result.sort(key=lambda x: x[1])
-        res = [word_freq[0] for word_freq in result]
+
+        res = [word_freq[0] for word_freq in sorted(result, key=lambda x: x[1])]
         return res[:self.num_res_return]
 
     @staticmethod
@@ -350,7 +365,7 @@ class Server:
                 return
             for child in node.children:
                 dfs(node.children[child])
-        dfs(self.root)
+        dfs(self.__root)
 
     @staticmethod
     def update_parent_new(node, d):
@@ -442,7 +457,7 @@ class Server:
             for child in node.children:
                 dfs(node.children[child])
         data = []
-        dfs(self.root)
+        dfs(self.__root)
         return data
 
     @staticmethod
@@ -455,6 +470,7 @@ class Server:
         :return: Server
         """
         node_count = 0
+
         def build_trie(node, num_children, index):
             nonlocal root, node_count
             if num_children == 0:

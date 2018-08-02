@@ -73,6 +73,17 @@ def test_delete_word(app):
     assert app.root.children == {}
 
 
+def test_delete_words(app):
+    # Search multiple words and their prefixes. Delete words to check if prefixes intact.
+    app.search('timing')
+    app.search('tim')
+    app.delete('timing')
+    app.search('interesting')
+    app.search('interest')
+    app.delete('interesting')
+    assert app.node_count == 9
+
+
 def test_serialization(app):
     # After search a term, perform path compression and then serialize the server
     app.search('time machine is here')
