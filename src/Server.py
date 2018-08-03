@@ -4,7 +4,7 @@ import logging.config
 import yaml
 
 # from nltk.corpus import words as en_corpus
-from py2neo import Node, NodeMatcher
+from py2neo import Node
 from src.Trienode import TrieNode
 from src.Spell import Spell
 
@@ -20,8 +20,20 @@ class ReturnResultValueLessThanOne(BasicValueError):
 
 
 class Server:
-    """Returns top results to the user.
-     Results may be outdated before calling update trie function."""
+    """Server class for auto-complete system
+
+    This class creates application server for performing auto-complete functionality.
+    Main API search(str) searches a term in server and returns top results to the user.
+    New servers can be established from Neo4j database which stores historical search data.
+    Results may be outdated before calling update trie function.
+
+    Attributes:
+        Server.server_index: int
+            index for the application server created
+        Server.server_update_frequency: int
+            frequency for controlling how often servers write to database
+    """
+
     server_index = 0
     server_update_frequency = 1
 
@@ -35,7 +47,7 @@ class Server:
         self.__class__.server_index += 1
         if connect_to_db:
             self.db = Database.DatabaseHandler()
-            self._selector = NodeMatcher(self.db.graph)
+            self._selector = self.db.graph.nodes        # get node matcher
 
         if root is None:
             self.__root = TrieNode(prefix='', is_word=False)
@@ -48,7 +60,6 @@ class Server:
 
         # Logging facilities
         if not testing:
-            # self.word_dictionary = set(en_corpus.words())
             with open('logging.config', 'r') as f:
                 config = yaml.safe_load(f)
             logging.config.dictConfig(config)
@@ -183,21 +194,21 @@ class Server:
     def build_trie(self):
         """
         This method builds trie server with TrieNode-labeled nodes from the database.
-        Compared to previous version, significantly improves run-time by only insert complete words.
-        Runtime reduction: O(NK^2) -> O(NK), where N is number of words and K is average word length.
+        Improves run-time by only insert complete words.
         :return: None
         """
         self.app_reset()
         root = self._selector.match('ROOT').first()
-        g = self.db.graph
+        graph = self.db.graph
 
         def dfs(node):
-            d = dict(node)
-            prefix, isword, count = d['name'], d['isword'], d['count']
+            prefix, isword, count = node['name'], node['isword'], node['count']
             if isword:
                 self.__insert(prefix, isword, from_db=True, count=count)
-            for rel in g.match(node, rel_type='PARENT'):
-                dfs(rel.end_node())
+            # find all parent-children relationships
+            for rel in graph.match(nodes=[node], r_type=Database.Parent):
+                if rel is not None:
+                    dfs(rel.nodes[1])
         dfs(root)
         self.update_top_results()
 
