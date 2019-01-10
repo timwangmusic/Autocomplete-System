@@ -1,3 +1,8 @@
+"""
+    Use machine learning to assist spelling corrections.
+"""
+
+
 from . import Server
 from . import Spell
 from sklearn.neighbors import BallTree
@@ -66,7 +71,7 @@ class AdvTrie(Server.Server):
         :param from_adv_app: bool. True if the search call is from AdvTrie servers.
         :return: List[str]
         """
-        basic_results = super().search(search_term, from_adv_app=from_adv_app)
+        basic_results = super().search(search_term)
         corrections = []
         next_words = None
         if len(search_term) > 0:
@@ -78,7 +83,7 @@ class AdvTrie(Server.Server):
         next_words = [word for word in next_words if word not in basic_results and word not in corrections]
 
         for word in corrections[:AdvTrie.NUM_CORRECTIONS_TO_INSERT]:
-            super().search(word, from_adv_app=True)
+            super().search(word)
 
         self.search_count += 1
         if self.search_count >= AdvTrie.server_update_frequency:

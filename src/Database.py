@@ -1,3 +1,8 @@
+"""
+    Define relationships and database handler.
+"""
+
+
 from py2neo import Graph, Relationship
 
 

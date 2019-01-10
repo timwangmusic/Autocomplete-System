@@ -1,5 +1,9 @@
-# Python3 variance for classic Spelling corrector by Peter Norvig
-# Ref: http://norvig.com/spell-correct.html
+"""
+Python3 variance for classic Spelling corrector by Peter Norvig
+
+Ref: http://norvig.com/spell-correct.html
+
+"""
 from collections import Counter
 import re
 import string
