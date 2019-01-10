@@ -1,3 +1,6 @@
+"""
+    Main module for auto-complete server
+"""
 from collections import deque, Counter
 import logging
 import logging.config
@@ -9,14 +12,7 @@ from src.Trienode import TrieNode
 from src.Spell import Spell
 
 from . import Database
-
-
-class BasicValueError(ValueError):
-    pass
-
-
-class ReturnResultValueLessThanOne(BasicValueError):
-    pass
+from src.Errors import ReturnResultValueLessThanOne
 
 
 class Server:

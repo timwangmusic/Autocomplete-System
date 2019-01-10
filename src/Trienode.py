@@ -2,6 +2,10 @@ from collections import Counter
 
 
 class TrieNode:
+    """
+        Node class for the Trie tree.
+
+    """
     def __init__(self, prefix=None, parent=None, is_word=False):
         """
 

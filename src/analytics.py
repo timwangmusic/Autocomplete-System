@@ -1,9 +1,18 @@
+"""
+    Main module for usage pattern analysis.
+"""
+
+
 import re
 import csv
 from collections import defaultdict, Counter
 
 
 class Analyzer:
+    """
+        Analyzer class for usage pattern analysis.
+
+    """
     def __init__(self):
         self.search_pattern = re.compile(r'(\S+)\s.* for (\S+)')
         self.log_file = 'log_files/app_search_info.log'
@@ -49,6 +58,7 @@ class Analyzer:
             for word, count in overall_data.items():
                 csv_writer.writerow((word, count))
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     analyzer = Analyzer()
     analyzer.generate_csv(log=None)
