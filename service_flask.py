@@ -13,7 +13,7 @@ app = flask.Flask(__name__)
 server = Server(connect_to_db=False)
 
 
-@app.route('/autocomplete', methods=["GET", "POST"])
+@app.route('/search', methods=["GET", "POST"])
 def autocomplete():
     """
     define an autocomplete function as an end-point.
@@ -33,4 +33,4 @@ def autocomplete():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='127.0.0.1')
