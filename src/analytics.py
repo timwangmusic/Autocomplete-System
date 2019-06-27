@@ -15,7 +15,7 @@ class Analyzer:
     """
     def __init__(self):
         self.search_pattern = re.compile(r'(\S+)\s.* for (\S+)')
-        self.log_file = 'log_files/app_search_info.log'
+        self.log_file = 'logs/app_search_info.log'
 
     def log_processing(self, log=None):
         """
