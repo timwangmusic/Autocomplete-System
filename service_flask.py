@@ -7,30 +7,36 @@ To use:
 """
 
 from src.Server import Server
-import flask
+from flask import Flask, url_for, request, render_template
 
-app = flask.Flask(__name__)
+app = Flask(__name__)
 server = Server(connect_to_db=False)
 
+@app.route('/', methods=["GET"])
+def welcome():
+    # return "Welcome to use the auto-complete system!"
+    return render_template("welcome_page.html")
 
-@app.route('/search', methods=["GET", "POST"])
+@app.route('/search', methods=["GET"])
 def autocomplete():
     """
     define an autocomplete function as an end-point.
     """
-    data = {'success': False}
+    data = {'success': False, 'result': None}
 
-    params = flask.request.json
-    if params is None:
-        params = flask.request.args
+    params = request.args
+    if params is None or params.get('term') is None:
+        return render_template("error_input.html")
 
-    if params is not None:
-        search_result = server.search(params.get('term'))
-        data['result'] = search_result
-        data['success'] = True
+    term = params.get('term')
+    search_result = server.search(term)
+    data['result'] = search_result
+    data['success'] = True
+    return render_template("search_results.html", term=term, results=search_result)
 
-    return flask.jsonify(data)
-
+with app.test_request_context():
+    print(url_for('welcome'))
+    print(url_for('autocomplete'))
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1')
