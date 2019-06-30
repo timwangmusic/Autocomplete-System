@@ -22,16 +22,12 @@ def autocomplete():
     """
     define an autocomplete function as an end-point.
     """
-    data = {'success': False, 'result': None}
-
-    params = request.args
+    params = request.args   # parsed url args as a immutable multi-dict
     if params is None or params.get('term') is None:
         return render_template("error_input.html")
 
     term = params.get('term')
     search_result = server.search(term)
-    data['result'] = search_result
-    data['success'] = True
     return render_template("search_results.html", term=term, results=search_result)
 
 with app.test_request_context():
