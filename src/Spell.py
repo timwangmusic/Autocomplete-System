@@ -10,7 +10,7 @@ import string
 
 
 class Spell:
-    def __init__(self, file='big_text.txt'):
+    def __init__(self, file='data/big_text.txt'):
         text = open(file).read()
         self.words = re.findall(r'\w+', text)
         self.total_words = len(self.words)
