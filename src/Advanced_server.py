@@ -18,7 +18,7 @@ class AdvTrie(Server.Server):
     MAX_BASIC_RESULTS = 15
 
     def __init__(self, num_corrections=10, num_basic_results=10,
-                 home_dir="/Users/Weihe/Dropbox/Auto_complete_system/src",
+                 home_dir=".",
                  embedding_json=None,
                  vocab_int_json=None, *args, **kwargs):
         super().__init__(num_res_return=num_basic_results, *args, **kwargs)
@@ -63,12 +63,11 @@ class AdvTrie(Server.Server):
             res.append(self.int_vocab[neighbor])
         return res[1:]
 
-    def search(self, search_term, from_adv_app=True):
+    def search(self, search_term):
         """
         This search method not only returns results from basic class count-based search,
         but also returns top phrases from Bayes predictions.
         :param search_term: same as in base class.
-        :param from_adv_app: bool. True if the search call is from AdvTrie servers.
         :return: List[str]
         """
         basic_results = super().search(search_term)

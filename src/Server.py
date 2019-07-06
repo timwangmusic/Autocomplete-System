@@ -5,6 +5,7 @@ from collections import deque, Counter
 import logging
 import logging.config
 import yaml
+import csv
 
 # from nltk.corpus import words as en_corpus
 from py2neo import Node
@@ -67,6 +68,12 @@ class Server:
         self.testing = testing
         self._num_res_return = num_res_return
         self.spell_checker = Spell()
+
+        with open('data/5000_most_freq_words.csv') as csv_file:
+            words_reader = csv.reader(csv_file)
+            for row in words_reader:
+                _, rank, word, freq, _ = row
+                self.__insert(word, True, freq)
 
     def __str__(self):
         return self.__repr__()
