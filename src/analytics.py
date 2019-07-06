@@ -5,6 +5,7 @@
 
 import re
 import csv
+import os
 from collections import defaultdict, Counter
 
 
@@ -45,15 +46,18 @@ class Analyzer:
         """
         data, overall_data = self.log_processing(log)
 
+        if not os.path.exists("stats"):
+            os.makedirs("stats")
+
         if gen_csv_for_each_day:
             for date in data:
                 data_date = data[date]
-                with open('{} search results.csv'.format(date), mode='wt') as csv_file:
+                with open('stats/{} search results.csv'.format(date), mode='wt') as csv_file:
                     csv_writer = csv.writer(csv_file)
                     for word, count in data_date.items():
                         csv_writer.writerow((word, count))
 
-        with open('up_to_date search results.csv', mode='wt') as file:
+        with open('stats/up_to_date search results.csv', mode='wt') as file:
             csv_writer = csv.writer(file)
             for word, count in overall_data.items():
                 csv_writer.writerow((word, count))
