@@ -73,7 +73,8 @@ class Server:
             words_reader = csv.reader(csv_file)
             for row in words_reader:
                 _, rank, word, freq, _ = row
-                self.__insert(word, True, freq)
+                freq = int(freq)
+                self.__insert(word, True, freq, from_db=True)
 
     def __str__(self):
         return self.__repr__()
