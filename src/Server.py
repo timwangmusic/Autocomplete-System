@@ -55,6 +55,8 @@ class Server:
         self.node_count = node_count
         self.search_count = 0   # tracking number of search before performing trie update
 
+        self.testing = testing
+
         # Logging facilities
         if not testing:
             with open('logging.config', 'r') as f:
@@ -62,19 +64,18 @@ class Server:
             logging.config.dictConfig(config)
             self.logger = logging.getLogger('Trie_db')
             self.insertLogger = logging.getLogger('Trie_db.insert')
+
+            with open('data/5000_most_freq_words.csv') as csv_file:
+                words_reader = csv.reader(csv_file)
+                for row in words_reader:
+                    _, rank, word, freq, _ = row
+                    freq = int(freq)
+                    self.__insert(word, True, freq, from_db=True)
         else:
             self.word_dictionary = set()
 
-        self.testing = testing
         self._num_res_return = num_res_return
         self.spell_checker = Spell()
-
-        with open('data/5000_most_freq_words.csv') as csv_file:
-            words_reader = csv.reader(csv_file)
-            for row in words_reader:
-                _, rank, word, freq, _ = row
-                freq = int(freq)
-                self.__insert(word, True, freq, from_db=True)
 
     def __str__(self):
         return self.__repr__()
