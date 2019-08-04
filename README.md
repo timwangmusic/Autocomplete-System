@@ -13,7 +13,3 @@ Auto-complete system using Neo4j graph database for storing data and providing f
 ### How to use
 * Run `python service_flask.py` to start REST service.
 * Run `python analytics.py` to generate usage reports.
-
-### Steps
-+ Set up the virtualenv autoenv and setup virtualenv using https://help.dreamhost.com/hc/en-us/articles/115000695551-Installing-and-using-virtualenv-with-Python-3
-+ Delete envauto before syncing
