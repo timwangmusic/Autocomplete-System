@@ -8,14 +8,23 @@ To use:
 
 from src.Server import Server
 from flask import Flask, url_for, request, render_template
+import datetime
 
 app = Flask(__name__)
 server = Server(connect_to_db=False)
 
 @app.route('/', methods=["GET"])
 def welcome():
-    # return "Welcome to use the auto-complete system!"
     return render_template("welcome_page.html")
+
+@app.route("/getTime", methods=["GET"])
+def getTime():
+    """
+    Print the time on the welcome/main page
+    """
+    now = datetime.date.today()
+    content = f"Thanks for visiting, Time now {now}"
+    return content
 
 @app.route('/search', methods=["GET"])
 def autocomplete():
@@ -29,6 +38,7 @@ def autocomplete():
     term = params.get('term')
     search_result = server.search(term)
     return render_template("search_results.html", term=term, results=search_result)
+
 
 with app.test_request_context():
     print(url_for('welcome'))
