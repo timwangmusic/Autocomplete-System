@@ -1,18 +1,82 @@
 <!doctype html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width", initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie-edge">
     <title>
         autocomplete
     </title>
-<!--    <link rel="stylesheet" type="text/css" href="style.css">-->
+    <!-- <link rel="stylesheet" type="text/css" href="./public/css/index.css"> -->
+    <!--Bootstrap CSS -->>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </head>
 
 <body>
 
-<h1>    Welcome to use the auto-complete system</h1>
+</html>
+
+<h1>    An Auto-complete system </h1>
+
+<!-- linking script -->
+<!-- <button onclick="window.location.href = '/search?term=';">Search</button> -->
+<body>
+    <script type="text/javascript">
+    function search_words()
+    {   
+        // type="search"
+        var url = document.getElementById("searchTxt").value;
+        document.write("Redirecting to the url in 1 second..."); 
+        console.log(url);
+        setTimeout(function(){window.location.href = '/search?term=' + url;}, 1000);
+    }
+    </script>
+    <!-- input tag -->
+    <label for = "Search-search">Search for words:</label>
+<!--input id="searchbar" onkeyup="search_words()" type="text" name="search" placeholder="Search and go wild ..."-->
+    <input type="search" 
+        results = 5 
+        id = "searchTxt" 
+        name="q" 
+        aria-label="Search for auto-complete" 
+        placeholder="Search and go wild ..">
+    <button onclick="search_words();">Search!</button>
+    <p id="demo"></p>
+</body>
+
 <h3>
-    <div>
-        Use /search?term=search_item to search any search item in English you are interested in.
-    </div>
+    <b>History of Words Searched</b>
 </h3>
+
+<!-- ordered list -->
+<ol id='list'> 
+        <li class="words">In</li> 
+        <li class="words">the</li> 
+        <li class="words">crib</li> 
+        <li class="words">Fish</li> 
+        <li class="words">Gorilla</li> 
+        <li class="words">Monkey</li> 
+        <li class="words">May</li> 
+        <li class="words">World</li> 
+        <li class="words">Lord</li> 
+        <li class="words">broken</li> 
+        <li class="words">Horse</li> 
+    </ol> 
+
+
+<script>
+function sendTimeToServer(){
+    var time = new Date();
+    var i = document.createElement("img");
+    i.src = "/getTime?time=" + time;
+    document.getElementById("time").innerHTML = time;
+}
+</script>
+<button onclick = "sendTimeToServer()">update time</button>
+<div id = "time">Time: </div>
 
 </body>

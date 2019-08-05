@@ -1,0 +1,35 @@
+#searchbar{ 
+	margin-left: 15%; 
+	padding:15px; 
+	border-radius: 10px; 
+}
+
+label {
+    display: block;
+}
+
+input[type=text] { 
+	width: 30%; 
+	-webkit-transition: width 0.15s ease-in-out; 
+	transition: width 0.15s ease-in-out; 
+}
+
+input,
+label {
+    margin: .4rem 0;
+}
+
+/* When the input field gets focus, 
+		change its width to 100% */
+input[type=text]:focus { 
+	width: 70%; 
+} 
+
+#list{ 
+	font-size: 1.5em; 
+	margin-left: 90px; 
+} 
+
+.words{ 
+display: list-item;	 
+} 
