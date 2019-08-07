@@ -4,6 +4,15 @@
 	border-radius: 10px; 
 }
 
+body, html{
+	height: 100%;
+	background-image: url("/static/images/design-1200x633.jpg");
+	background-color: #cccccc; 
+	background-position: center; 
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
 label {
     display: block;
 }

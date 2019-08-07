@@ -39,7 +39,6 @@ def autocomplete():
     search_result = server.search(term)
     return render_template("search_results.html", term=term, results=search_result)
 
-
 with app.test_request_context():
     print(url_for('welcome'))
     print(url_for('autocomplete'))
