@@ -11,5 +11,22 @@ Auto-complete system using Neo4j graph database for storing data and providing f
 * Serialization and deserialization of servers for data exchange.
 
 ### How to use
-* Run `python service_flask.py` to start REST service.
-* Run `python analytics.py` to generate usage reports.
+
+#### Install pip first
+	* Run `sudo apt-get install python3-pip`
+
+#### Then install virtualenv using pip3
+	* Run `virtualenv -p python3 env`
+
+#### Now create a virtual environment
+	* Run `virtualenv -p python3 env`
+
+#### Active your virtual environment:
+	* Run `source env/bin/activate`
+
+#### Install the project requirements
+	* Run `pip install -r requirements.txt`
+
+#### Run the project
+	* Run `python service_flask.py` to start REST service.
+	* Run `python analytics.py` to generate usage reports.
