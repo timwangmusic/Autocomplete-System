@@ -11,5 +11,16 @@ Auto-complete system using Neo4j graph database for storing data and providing f
 * Serialization and deserialization of servers for data exchange.
 
 ### How to use
+* Install `Python3 venv`
+```
+macOS/Linux
+sudo apt-get install python3-venv # If needed
+python3 -m venv env
+source env/bin/activate
+
+Windows
+python -m venv env
+```
+* Run `pip3 install requirements.txt` to install the python3 requirements
 * Run `python service_flask.py` to start REST service.
 * Run `python analytics.py` to generate usage reports.
