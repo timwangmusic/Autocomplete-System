@@ -13,9 +13,11 @@ import datetime
 app = Flask(__name__)
 server = Server(connect_to_db=False)
 
+
 @app.route('/', methods=["GET"])
 def welcome():
     return render_template("welcome_page.html")
+
 
 @app.route("/getTime", methods=["GET"])
 def getTime():
@@ -26,18 +28,20 @@ def getTime():
     content = f"Thanks for visiting, Time now {now}"
     return content
 
+
 @app.route('/search', methods=["GET"])
 def autocomplete():
     """
     define an autocomplete function as an end-point.
     """
-    params = request.args   # parsed url args as a immutable multi-dict
+    params = request.args  # parsed url args as a immutable multi-dict
     if params is None or params.get('term') is None:
         return render_template("error_input.html")
 
     term = params.get('term')
     search_result = server.search(term)
     return render_template("search_results.html", term=term, results=search_result)
+
 
 with app.test_request_context():
     print(url_for('welcome'))
