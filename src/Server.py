@@ -324,15 +324,10 @@ class Server:
         if not isinstance(search_term, str):
             raise TypeError("{} is not a string".format(search_term))
 
-        # last_node = None
-        # if search_term == '':
-        #     last_node = self.root
-
         _words = search_term.lower().split()
         if len(_words) == 0:
             return []
-        # for word in _words:
-        #     last_node = self.__insert(word, from_db=False)
+
         _word_lists = []
         for word in _words:
             # The replacement takes care of cases of both valid and invalid words
