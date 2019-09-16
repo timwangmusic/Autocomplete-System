@@ -2,16 +2,18 @@
 Use Flask to create simple auto-complete service
 
 To use:
-    run py service_flask.py
+    run py service_with_flask.py
     in browser: http://localhost:5000/autocomplete?term=search_term
 """
 
 from src.Server import Server
+from iomanagers.redis_manager import RedisManager
 from flask import Flask, url_for, request, render_template
 import datetime
 
 app = Flask(__name__)
 server = Server(connect_to_db=False)
+redis_mgr = RedisManager("localhost", "6379", 0)
 
 
 @app.route('/', methods=["GET"])
@@ -39,7 +41,13 @@ def autocomplete():
         return render_template("error_input.html")
 
     term = params.get('term')
-    search_result = server.search(term)
+    # check autocomplete results from Redis first
+    search_result = redis_mgr.get_search_results(term)
+
+    if not search_result:
+        search_result = server.search(term)
+        redis_mgr.cache_search_results(term, search_result)
+
     return render_template("search_results.html", term=term, results=search_result)
 
 
