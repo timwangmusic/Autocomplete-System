@@ -1,0 +1,23 @@
+{
+  "name": "Autocomplete-System",
+  "version": "1.0.0",
+  "description": "[![Build Status](https://travis-ci.org/weihesdlegend/Auto-complete-System.svg?branch=master)](https://travis-ci.org/weihesdlegend/Auto-complete-System)",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weihesdlegend/Autocomplete-System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/weihesdlegend/Autocomplete-System/issues"
+  },
+  "homepage": "https://github.com/weihesdlegend/Autocomplete-System#readme"
+}
