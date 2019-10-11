@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font: 16px Arial;  
+}
+
+/*the container must be positioned relative:*/
+.autocomplete {
+  position: relative;
+  display: inline-block;
+}
+
+input {
+  border: 1px solid transparent;
+  background-color: #f1f1f1;
+  padding: 10px;
+  font-size: 16px;
+}
+
+input[type=text] {
+  background-color: #f1f1f1;
+  width: 100%;
+}
+
+input[type=submit] {
+  background-color: DodgerBlue;
+  color: #fff;
+  cursor: pointer;
+}
+
+.autocomplete-items {
+  position: absolute;
+  border: 1px solid #d4d4d4;
+  border-bottom: none;
+  border-top: none;
+  z-index: 99;
+  /*position the autocomplete items to be the same width as the container:*/
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+
+.autocomplete-items div {
+  padding: 10px;
+  cursor: pointer;
+  background-color: #fff; 
+  border-bottom: 1px solid #d4d4d4; 
+}
+
+/*when hovering an item:*/
+.autocomplete-items div:hover {
+  background-color: #e9e9e9; 
+}
+
+/*when navigating through the items using the arrow keys:*/
+.autocomplete-active {
+  background-color: DodgerBlue !important; 
+  color: #ffffff; 
+}
+</style>
+</head>     
+<body>
+
+<h2>Test Auto-Sense On Game Of Thrones</h2>
+
+<p>Valar Doharis !</p>
+
+<!--Make sure the form has the autocomplete function switched off:-->
+<form autocomplete="off" action="/action_page.php">
+  <div class="autocomplete" 
+  >
+    <input id="myInput" type="text" name="words" placeholder="ValarMorgulis">
+  </div>
+  <input type="submit">
+</form>
+<script>
+function autocomplete(inp, arr) {
+  /*the autocomplete function takes two arguments,
+  the text field element and an array of possible autocompleted values:*/
+  var currentFocus;
+  /*execute a function when someone writes in the text field:*/
+    inp.addEventListener("input", function(e) {
+      var a, b, i, val = this.value;
+      /*close any already open lists of autocompleted values*/
+      closeAllLists();
+      if (!val) { return false;}
+      currentFocus = -1;
+      /*create a DIV element that will contain the items (values):*/
+      a = document.createElement("DIV");
+      a.setAttribute("id", this.id + "autocomplete-list");
+      a.setAttribute("class", "autocomplete-items");
+      /*append the DIV element as a child of the autocomplete container:*/
+      this.parentNode.appendChild(a);
+      /*for each item in the array...*/
+      for (i = 0; i < arr.length; i++) {
+        /*check if the item starts with the same letters as the text field value:*/
+        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+          /*create a DIV element for each matching element:*/
+          b = document.createElement("DIV");
+          /*make the matching letters bold:*/
+          b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+          b.innerHTML += arr[i].substr(val.length);
+          /*insert a input field that will hold the current array item's value:*/
+          b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+          /*execute a function when someone clicks on the item value (DIV element):*/
+          b.addEventListener("click", function(e) {
+              /*insert the value for the autocomplete text field:*/
+              inp.value = this.getElementsByTagName("input")[0].value;
+              /*close the list of autocompleted values,
+              (or any other open lists of autocompleted values:*/
+              closeAllLists();
+          });
+          a.appendChild(b);
+        }
+      }
+  });
+  /*execute a function presses a key on the keyboard:*/
+  inp.addEventListener("keydown", function(e) {
+      var x = document.getElementById(this.id + "autocomplete-list");
+      if (x) x = x.getElementsByTagName("div");
+      if (e.keyCode == 40) {
+        /*If the arrow DOWN key is pressed,
+        increase the currentFocus variable:*/
+        currentFocus++;
+        /*and and make the current item more visible:*/
+        addActive(x);
+      } else if (e.keyCode == 38) { //up
+        /*If the arrow UP key is pressed,
+        decrease the currentFocus variable:*/
+        currentFocus--;
+        /*and and make the current item more visible:*/
+        addActive(x);
+      } else if (e.keyCode == 13) {
+        /*If the ENTER key is pressed, prevent the form from being submitted,*/
+        e.preventDefault();
+        if (currentFocus > -1) {
+          /*and simulate a click on the "active" item:*/
+          if (x) x[currentFocus].click();
+        }
+      }
+  });
+  function addActive(x) {
+    /*a function to classify an item as "active":*/
+    if (!x) return false;
+    /*start by removing the "active" class on all items:*/
+    removeActive(x);
+    if (currentFocus >= x.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = (x.length - 1);
+    /*add class "autocomplete-active":*/
+    x[currentFocus].classList.add("autocomplete-active");
+  }
+  function removeActive(x) {
+    /*a function to remove the "active" class from all autocomplete items:*/
+    for (var i = 0; i < x.length; i++) {
+      x[i].classList.remove("autocomplete-active");
+    }
+  }
+  function closeAllLists(elmnt) {
+    /*close all autocomplete lists in the document,
+    except the one passed as an argument:*/
+    var x = document.getElementsByClassName("autocomplete-items");
+    for (var i = 0; i < x.length; i++) {
+      if (elmnt != x[i] && elmnt != inp) {
+        x[i].parentNode.removeChild(x[i]);
+      }
+    }
+  }
+  /*execute a function when someone clicks in the document:*/
+  document.addEventListener("click", function (e) {
+      closeAllLists(e.target);
+  });
+}
+
+//var words = processWords();
+
+//document.write(console.log(processWords()));
+console.log(words);
+// var words = ["Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua & Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia & Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central Arfrican Republic","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cuba","Curacao","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauro","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre & Miquelon","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","St Kitts & Nevis","St Lucia","St Vincent","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Turks & Caicos","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States of America","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"];
+
+var words = ["Acorn Hall","Addam Marbrand","Addison Hill","Adrack Humble","Adventure","Aegon Frey","Aegon I Targaryen",
+"Aegon II Targaryen","Aegon III Targaryen","Aegon IV Targaryen","Aegon Targaryen (Infant)","Aegon Targaryen","Aegon V Targaryen",
+"Aegon","Aegor Rivers","Aelinor Targaryen","Aemon Estermont","Aemond Targaryen","Aenys Frey","Aenys I Targaryen","Aenys","Aerion Targaryen",
+"Aeron Greyjoy","Aerys I Targaryen","Aerys II Targaryen","Aethan","Aethelmure","Aggar","Aggo","Aglantine","Agrivane","Aladale Wynch","Alan of Rosby",
+"Alannys Harlaw","Alaric","Alayaya","Albar Royce","Albett","Alebelly","Alekyne Florent","Alequo Adarys","Alerie Hightower","Alesander Frey","Alesander Staedmon",
+"Alesander Torrent","Alesander","Alester Florent","Alester Norcross","Alester Oakheart","Alester","Alf","Alfyn","Alia of Braavos","Alios Qhaedar","Alla Tyrell",
+"Allaquo","Allar Deem","Allard Seaworth","Alleras","Alliser Thorne","Allyria Dayne","Alvyn Sharp","Alyce Dunn","Alyce Graceford","Alyce","Alyn Ambrose",
+"Alyn Blackwood","Alyn Connington","Alyn Estermont","Alyn Frey","Alyn Haigh","Alyn Hunt","Alyn of the Rosewood","Alyn Stackspear","Alyn Velaryon","Alyn",
+"Alynne Connington","Alys Arryn","Alys Beesbury","Alys Frey","Alys Karstark","Alys","Alysane Mormont","Alysanne Bracken","Alysanne Bulwer","Alysanne Hightower",
+"Alysanne Lefford","Alysanne of Tarth","Alysanne Targaryen","Alysanne","Alyse Ladybright","Alyssa Arryn","Alyssa Blackwood","Alyssa","Alyssa's Tears",
+"Alyx Frey","Amabel","Amarei Crakehall","Ambrose Butterwell","Ambrose","Amerei Frey","Amory Lorch","Ancient Guild of Spicers","Andals","Andar Royce",
+"Anders Yronwood","Andrew Estermont","Andrey Charlton","Andrey Dalt","Andrey","Andrik","Andros Brax","Androw Frey","Anguy","Annara Farring","Antario Jast",
+"Anya Waynwood","Arakh","Arbor Queen","The Arbor","Archibald Yronwood","Archmaester Benedict","Ardent Friend","Ardrian Celtigar","Areo Hotah","Argilac",
+"Argrave the Defiant","Arianne Martell","Arianne of Tarth","Armen","Armond Connington","Arneld","Arnell","Arnolf Karstark","Aron Santagar","Arrec",
+"Arron Qorgyle","Arron","Arryk","Arson","Arstan Selmy","Arthor Karstark","Arthur Ambrose","Arthur Dayne","Artos Flint","Artos Stark","Artos","Artys Arryn",
+"Arwood Frey","Arwyn Frey","Arwyn Oakheart","Arwyn","Arya Stark","Arys Oakheart","Ash","Asha Greyjoy","Ashara Dayne","Ashemark","Assadora of Ibben","Asshai",
+"Asshai'i","Astapor","Atranta","Aurane Waters","Aurochs","Ax Isle","Axell Florent","Azor Ahai","Azzak","Bael","Baelor Blacktyde","Baelor Hightower",
+"Baelor I Targaryen","Baelor Targaryen","Baelor","Bailey","Balerion","Ballabar","Balman Byrch","Balon Botley","Balon Greyjoy","Balon Swann","Balon",
+"Balustrade","Banded Lizard","Bandy","Bannen","bannerman","Barbara Bracken","Barbican","Barbrey Ryswell","Barra","Barre","Barristan Selmy","Barrowlands",
+"Barrowton","Barsena Blackhair","Barth Stark","Barth","Bartimus","Basilisk Isles","Basilisk Point","Basilisks","Bass","Bastard's Cradle","Bastards",
+"Battlement","Bay of Crabs","Bayard Norcross","Beans","Bear Island","Becca the Baker","Becca (Vale)","Becca","Bedwyck","Belandra","Belaquo Bonebreaker",
+"Beldecar","Belgrave","Belicho Staegone","Belis","Bella","Bellegere Otherys","Bellena Hawick","Bellonara Otherys","Belwas","Ben Beesbury","Ben Blackthumb",
+"Ben Bones","Ben Bushy","Ben Plumm","Ben","Benedar Belmore","Benedict Broom","Benedict","Benerro","Benfred Tallhart","Benfrey Frey","Benjen Stark",
+"Benjen the Bitter","Benjen the Sweet","Benjicot Branch","Bennard Brune","Bennarion Botley","Bennet","Beqqo","Beren Tallhart","Berena Hornwood","Beric Dondarrion",
+"Beron Blacktyde","Beron Stark","Beron","Bertram Beesbury","Bess Bracken","Bessa","Beth Cassel","Bethany Blackwood","Bethany Fair-Fingers","Bethany Redwyne",
+"Bethany Rosby","Bethany Ryswell","Bethany","Betharios of Braavos","Bhakaz zo Loraq","Bharbo","Big Boil","Bill Bone","Bill (Muttering)","Bill",
+"Bird of Thousand Colors","Bite","Biter","Bitterbridge","Black Betha","Black Cliffs","Black Knife","Black Wind","Blackbird","Blackcrown","Blackhaven",
+"Blackwater Bay","Blandissory","Blane","Bloodbeard","Bloodflies","Bloodrider","Bloody Gate","Bluetooth","Blushing Bethany","Bodger","Bokkoko","Bold Laughter",
+"Boneway","Bonifer Hasty","Books","Borcas","Boremund Harlaw","Boros Blount","Borroq","Bors","Bountiful Harvest","Bowen Marsh","Braavos","Bran the Builder",
+"Brandon Norrey","Brandon Stark (Bran)","Brandon Stark (Brother)","Brandon Stark (Lord)","Brandon Stark","Brandon Tallhart","Brandon the Bad",
+"Brandon the Burner","Brandon the Daughterless.","Brandon the Shipwright","Brandon","Branston Cuy","Brave Companions","Brave Joffrey","Brave Magister",
+"Bravo","Brazen Monkey","Brazier","Brea","Brella","Brendel Bryne","Brenett","Brewer Barth","Briar","Briarwhite","Bride in Azure","Brienne of Tarth",
+"Bright Banners","Brightfish","Brightwater Keep","Brogg","Broken Arm","Bronn","Bronzegate","Brother Clement","Brother Narbert","Brotherhood Without Banners",
+"Brownhollow","Brus Buckler","Brusco","Bryan Fossoway","Bryan Frey","Bryce Caron","Bryen Caron","Bryen Farring","Bryen","Brynden Blackwood","Brynden Rivers",
+"Brynden Tully","Buford Bulwer","Burton Crakehall","Burton Humble","Butterbumps","Byam Flint","Byan Votyris","Byron","Cadwyl","Cadwyn","Cafferen (House)",
+"Cafferen (Lord)","Caggo","Caleotte","Calon","Camarron of the Count","Canker Jeyne","Cape Wrath","Capon","Captain Bryen","Carellen Smallwood","Carolei Waynwood",
+"Carrack","Carrot","Casper Wylde","Caspor Hill","Cass","Cassana Estermont","Casso Mogat","Castamere","Castellan","Casterly Rock","Castle Black","Castle Cerwyn",
+"Castos","Caswell","Catelyn Bracken","Catelyn Tully","Catspaw","Cayn","Cedra","Cedric Payne","Cedrik Storm","Cellador","Centaurs","Cerenna Lannister","Cersei Frey",
+"Cersei Lannister","Cetheres","Charger","Chataya","Chayle","Chella","Chett","Cheyk","Chiggen","Children of the Forest","Chiswyck","Cinnamon Wind","Citadel",
+"Civic Guard","Clarence Crabb","Clarence the Legend","Clarence the Short","Claw Isle","Clayton Suggs","Clement Crabb","Clement Piper","Clement","Cleon the Second",
+"Cleon","Cleos Frey","Cletus Yronwood","Cley Cerwyn","Cloth of gold","Clydas","Coals","Cobblecat","Cogs","Cohollo","Coldhands","Coldwater Burn","Colemon",
+"Colen of Greenpools","Colin Florent","Collio Quaynis","Colloquo Votar","Colmar Frey","The Company of the Cat","Conn","Conwy","Coratt","Corliss Penny",
+"Corpse Lake","Cortnay Penrose","Cossomo","Cotter Pyke","Courageous","Courser","Courtenay Greenhill","Crackclaw Point","Crag","Cragorn","Crannog","Crannogmen",
+"Craster","Craster's Keep","Crawn","Cregan Karstark","Cregan Stark","Cregan","Creighton Longbough","Creighton Redfort","Creighton","Crenel","Cressen",
+"Criston Cole","Crossroads Inn","Crow Spike Keep","Crownlands","Crows Nest","Cuger","Cutjack","Cynthea Frey","Cyrenna Swann","Daario Naharis","Dacey Mormont",
+"Dacks","Daegon Shepherd","Daemon Blackfyre","Daemon Sand","Daena Targaryen","Daenerys Targaryen","Daeron Vaith","Daeryssa","Dafyn Vance","Dagger Lake",
+"Dagger","Dagmer","Dagon Codd","Dagon Greyjoy","Dagon Ironmaker","Dagon","Dagon's Feast","Dagos Manwoody","Dake","Dalbridge","Dale Drumm","Dale Seaworth",
+"Dale","Dalla (Dragonstone)","Dalla (wildling)","Dalla","Damion Lannister","Damon Dance-for-Me","Damon Marbrand","Damon Vypren","Damon","Dancy","Danelle Lothston",
+"Danny Flint","Danos Slynt","Danwell Frey","Dareon","Darlessa Marbrand","Daryn Hornwood","Daughter of the Dusk","Daven Lannister","Davos Seaworth",
+"Deana Hardyng","Deep Den","Deep Lake","Deepwood Motte","The Defiance of Duskendale","Del","Delena Florent","Della Frey","Delonne Allyrion","Delp","Denestan",
+"Dennet","Dennis Plumm","Denyo Terys","Denys Arryn","Denys Darklyn","Denys Drumm","Denys Mallister","Denys Redwyne","Denys Strong","Denys","Denyse Hightower",
+"Denzo D'han","Dermot of the Rainwood","Desmera Redwyne","Desmond Grell","Desmond Redwyne","Desmond","Destrier","Devan Seaworth","Devotion","Devyn Sealskinner",
+"Deziel Dalt","Dhazzar","Dick Cole","Dick Crabb","Dick Follard","Dick Straw","Dick","Dickon Frey","Dickon Manwoody","Dickon Tarly","Dickon","Dilly","Direwolves",
+"Dirk","Disputed Lands","Dobber","Dog's Nose","Dolf son of Holger","Domeric Bolton","Donal Noye","Donel Greyjoy","Donella Manderly","Doniphos Paenymion",
+"Donnel Drumm","Donnel Haigh","Donnel Hill","Donnel Locke","Donnel Swann","Donnel Waynwood","Donnel","Donnor Stark","Dontos Hollard","Donyse","Doran Martell",
+"Dorcas","Dorea Sand","Doreah","Dormund","Dorna Swyft","Dorne","Dornish Marches","Dornishmen","Dorren Stark","Doss","Dothraki Sea","Dothraki","Downdelving",
+"Dragons","Dragonsbane","Dragonstone","Draqaz","Dreadfort","Driftmark","Drogo","Dromand","Droopeye Dale","Drowned Man","Drunken Daughter","Dugs","Dunaver",
+"Duncan Liddle","Duncan Strong","Duncan","Dunsen","Dunstan Drumm","Duram Bar Emmon","Durran","Duskendale","Dwarf's Penny","Dyah","Dykk Harlaw","Dyre Den",
+"Dywen","Eastwatch-by-the-Sea","Easy","Ebben","Ebonhead","Ebrose","Eddara Tallhart","Eddard Karstark","Eddard Stark","Edderion Stark","Eddison Tollett",
+"Edgerran Oakheart","Edmund Ambrose","Edmund Blackwood","Edmund Waxley","Edmund","Edmure Tully","Edmyn Tully","Edric Dayne","Edric Storm","Edric","Edrick Stark",
+"Edwyd Fossoway","Edwyle Stark","Edwyn Frey","Eerl Harlaw","Eggon","Eglantine","Egon Emeros","Elbert Arryn","Elder Brother","Eldiss","Eldon Estermont",
+"Eldred Codd","Eleanor Mooton","Elenei","Elenya Westerling","Elephant","Elia Martell","Elia Sand","Elia","Elinor Tyrell","Ellaria Sand","Ellery Vance",
+"Ellyn Tarbeck","Elmar Frey","Elwood Meadows","Elyana Vypren","Elyn Norridge","Elyria","Elys Waynwood","Elys Westerling","Elys","Emberlei Frey","Emma",
+"Emmett","Emmon Cuy","Emmon Frey","Emmon","Emmond","Emphyria Vance","Emrick","Endehar","Endrew Tarth","Eon Hunter","Erena Glover.","Erik","Ermesande Hayford",
+"Eroeh","Erreck","Erreg","Erren Florent","Errok","Erryk","Escutcheon","Esgred (Mother)","Esgred (Ship)","Esgred","Essos","Ethan Glover","Euron Greyjoy",
+"Eustace Brune","Eustace Hunter","Eustace","Eyrie","Ezzara","Ezzelyno","Fair Isle","Faircastle","Fairmarket","Faith of the Seven","Faithful","Falia Flowers",
+"Falyse Stokeworth","Far North","Farlen","Fat Fellow","fealty","Fearless Ithoke","Feathered Kiss","Felwood","Fern","Ferny","Ferrego Antaryon","Fingerdancer",
+"Fingers","Firewyrm","First Men","Fist of the First Men","Flea Bottom","Flement Brax","Flint's Finger","Florian","Foamdrinker","Fogo","Forktop","Forley Prester",
+"Forlorn Hope","Fornio","Fowler Twins","Fralegg","Franklyn Flowers","Franklyn Fowler","Franklyn","Free Cities","Frenken","Frenya","Frostfangs","Frozen Shore",
+"Frynne","Fury","Gage","Galazza Galare","Galbart Glover","Galladon of Morne","Galladon of Tarth","Galladon","Gallant Men","Gallard","galley","Galt",
+"Galyeon of Cuy","Gaoler Garth","Gared","Gareth Clifton","Garigus","Garin of Greenblood","Garin the Great","Garin","Gariss","Garizon","Garlan Tyrell",
+"Garrett Flowers","Garrett Paege","Garrett","Garrison Prester","Garron","Garse Flowers","Garse Goodbrook","Garse","Garth Greenfield","Garth Greenhand",
+"Garth Greyfeather","Garth Hightower","Garth of Greenaway","Garth of Oldtown","Garth Tyrell","Garth XII Gardener","Garth","Gascoyne of the Greenblood",
+"Gates of the Moon","Gavin","Gawen Glover","Gawen Westerling","Gawen Wylde","Gelmarr the Grim","Gendel","Gendry","Genna Lannister","Gerald Gower","Gerardys",
+"Gergen","Gerion Lannister","Germund Botley","Gerold Dayne","Gerold Grafton","Gerold Hightower","Gerren","Gerrick Kingsblood","Gerris Drinkwater",
+"Gerrold (Black)","Gerrold Redback","Gerrold","Gevin Harlaw","Ghael","Ghaen","Ghaston Grey","Ghiscar","Ghiscari Strait","Ghiscari","Ghost Hill",
+"Ghost of High Heart","Giant's Lance","Giant's Stair","Gift","Gilbert Farring","Gillam","Gilly","Gilwood Hunter","Ginger Jack","Gladden Wylde",
+"Glendon Hewett","Goady","Godric Borrell","Godry Farring","God's Eye","Godsgrace","Godswood","Godwyn","Goghor the Giant","Gogossos","Golden Company",
+"Golden Dragon","Golden Rose","Golden Storm","Golden Tooth","Goldengrove","Goodheart","Goodwin","Gorge","Gorget","Gorghan of Old Ghis","Gorghan","Gormon Tyrell",
+"Gormond Drumm","Gormond Goodbrother","Gormond","Gorne","Gorold Goodbrother","Gorys Edoryen","Gowen Baratheon","Gran Goodbrother","Grazdan mo Eraz",
+"Grazdan mo Ullhor","Grazdan the Great","Grazdan zo Galare","Grazdan","Grazdar zo Galare","Great Kraken","Great Walrus","Great Wyk","Greenbeard","Greenblood",
+"Greenshield","Greenstone","Gregor Clegane","Grenn","Gretchel","Grey Garden","Grey Ghost","Grey Glen","Grey King","Grey Worm","Greydon Goodbrother","Greyguard",
+"Greyhound","Greyjoy's Rebellion","Greyscale","Greyshield","Greywater Watch","Grief","Griffin King","Griffin's Roost","Grigg","Grimston","Grimtongue","Grisel",
+"Grisella","Groat","Groleo","Grubbs","Grumkin","Grunt","Guard Beron","Guardsman Arryk","Gueren","Gulf of Grief","Gulian Qorgyle","Gulian Swann","Gulian",
+"Gull Tower","Gulltown Girl","Gulltown","Guncer Sunglass","Gunthor Hightower","Gunthor son of Gurn","Gunthor","Gurn","Guthor Grimm","Guyard Morrigen","Guyne",
+"Gwayne Corbray","Gwin Goodbrother","Gwynesse Harlaw","Gwyneth Yronwood","Gylbert Farwynd","Gyleno Dothare","Gyles Farwynd","Gyles Grafton","Gyles Rosby","Gyles",
+"Gylo Rhegan","Gyloro Dothare","Gynir","Gysella Goodbrother","Haereg","Hagen","Haggo","Haggon","Hag's Mire","Hag's Teeth","Hake","Halder","Haldon","Hali",
+"Hall of a Thousand Thrones","Hallis Mollen","Hallyne","Halmon Paege","Halys Hornwood","Hamish","Hammer","Hammerhorn","Hand of the King","Handsome Man","Harbert",
+"Hardhand","Hardhome","Hardskin","Hareth (Citadel)","Hareth (Stable)","Hareth","Harghaz","Harl","Harlan Grandison","Harlan Hunter","Harlan","Harlaw Hall",
+"Harlaw (Lands)","Harle the Handsome","Harle the Huntsman","Harlen Tyrell","Harlon Botley","Harlon Greyjoy","Harlon Stark","Harlon","Harma","Harmen Uller",
+"Harmund Sharp","Harmune","Harodon","Harra","Harrag Hoare","Harrag Sharp","Harrag","Harras Harlaw","Harren Botley","Harren Half-Hoare","Harren Hoare","Harren",
+"Harrenhal","Harrentown","Harridan Hill","Harridan","Harrion Karstark","Harrold Hardyng","Harry Sawyer","Harry Strickland","Harry","Harvest Hall","Harwin",
+"Harwood Fell","Harwood Stout","Harwood","Harwyn Hoare","Harwyn Plumm","Harwyn","Harys Haigh","Harys Swyft","Harys","Haunted Forest","Hazzea","Heart's Home",
+"Hedge Knight","Hellholt","Helliweg","Helly","Helman Tallhart","Helya","Hendry Bracken","Henk the Helm","Hero","Hibald","High Heart","High Hermatige",
+"High Sparrow","Highgarden","Hightower (city)","Hightower","Hildy","Hilmar Drumm","Hippocras","Hizdahr zo Loraq","Hoarfrost Umber","Hobb","Hobber Redwyne",
+"Hodor","Hoke","Holger","Holly","Holy Hundred","Honeyholt","Honeywine","Honor of Oldtown","Hookface Will","Hop-Bean","Hop-Robin","Horas Redwyne","Horn Hill",
+"Horn of Plenty","Horned Honor","Hornvale","Horonno","Horselord","Horseshoe Rock","Horton Redfort","Hosman Norcross","Hosteen Frey","Hoster Blackwood",
+"Hoster Frey","Hoster Tully","Hoster","Hot Pie","Hother Umber","Hotho Harlaw","House Allyrion","House Ambrose","House Arryn","House Ashford","House Baelish",
+"House Ball","House Banefort","House Bar Emmon","House Baratheon","House Beesbury","House Belmore","House Bettley","House Blackbar","House Blackfyre",
+"House Blackmont","House Blacktyde","House Blackwood","House Blanetree","House Blount","House Boggs","House Bolton of the Dreadfort","House Borrell",
+"House Botley","House Bracken","House Brax","House Broom","Brune of Brownhallow","House Brune of the Dyre Den","House Brune","House Buckler","House Buckwell",
+"House Bulwer","House Bushy","House Butterwell","House Byrch","House Bywater","House Cafferen","House Cargyll","House Caron","House Cassel","House Casterly",
+"House Caswell","House Cave","House Celtigar","House Cerwyn","House Charlton","House Chelsted","House Chester","House Chyttering","House Clegane",
+"House Clifton","House Codd","House Coldwater","House Condon","House Conklyn","House Connington","House Corbray","House Cordwayner","House Costayne",
+"House Cox","House Crabb","House Crakehall","House Crane","House Cuy","House Dalt","House Darklyn","House Darry","House Dayne of High Hermitage",
+"House Dayne of Starfall","House Dayne","House Dondarrion","House Donniger","House Drumm","House Dunn","House Durwell","House Dustin","House Egen",
+"House Elesham","House Erenford","House Errol","House Estermont","House Estren","House Farman","House Farring","House Farwynd","House Fell",
+"House Flint of Flint's Finger","House Flint of Widow's Watch","House Flint","House Florent","House Foote","House Footly","House Fossoway of Cider Hall",
+"House Fossoway of New Barrel","House Fossoway","House Fowler","House Frey","House Gardener","House Gargalen","House Gaunt","House Glover","House Goodbrook",
+"House Goodbrother","House Gower","House Graceford","House Grafton","House Grandison","House Greenfield","House Grell","House Greyiron","House Greyjoy",
+"House Grimm","House Haigh","House Harclay","House Hardy","House Hardyng","House Harlaw","House Harroway","House Harte","House Hasty","House Hawick",
+"House Hayford","House Hersy","House Hetherspoon","House Hewett","House Hightower","House Hoare","House Hogg","House Hollard","House Hornwood","House Horpe","House Humble","House Hunter","House Inchfield","House Jast","House Jordayne","House Karstark","House Kenning of Harlaw","House Kenning of Kayce in the Westerlands","House Kenning","House Kettleblack","House Knott","House Ladybright","House Lannister","House Lefford","House Leygood","House Liddle","House Locke","House Longthorpe","House Lonmouth","House Lorch","House Lothston","House Lychester","House Lydden","House Lynderly","House Magnar",
+"House Mallery","House Mallister","House Manderly","House Manning","House Manwoody","House Marbrand","House Marsh","House Martell","House Massey","House Meadows","House Merlyn","House Merryweather","House Mertyns","House Mollen","House Moore","House Mooton","House Moreland","House Mormont","House Morrigen","House Mudd","House Mullendore","House Myatt","House Myre","House Nayland","House Netley","House Norcross","House Norrey","House Norridge","House Oakheart",
+"House Orkwood","House Osgrey","House Overton","House Paege","House Parren","House Payne","House Peake","House Peckledon","House Penrose","House Piper","House Plumm","House Poole","House Prester","House Pyne","House Qorgyle","House Rambton","House Redfort","House Redwyne","House Reed","House Reyne","House Rhysling","House Roote","House Rosby","House Rowan","House Royce","House Ruttiger","House Ryger","House Rykker","House Ryswell","House Saltcliffe","House Santagar","House Sarsfield","House Seaworth","House Selmy","House Serry",
+"House Sharp","House Shepherd","House Shermer","House Shett of Gull Tower","House Shett of Gulltown","House Shett","House Smallwood","House Sparr","House Spicer","House Stackhouse","House Stackspear","House Staedmon","House Stark","House Staunton","House Stokeworth","House Stonehouse","House Stonetree","House Stout","House Strong","House Sunderland","House Sunderly","House Sunglass","House Swann","House Swyft","House Tallhart","House Tarbeck","House Targaryen","House Tarly","House Tarth","House Tawney","House Templeton","House Thorne","House Toland","House Tollett","House Torrent","House Towers","House Toyne","House Trant","House Tully","House Tyrell",
+"House Uffering","House Uller","House Umber","House Vaith","House Vance of Atranta","House Vance of Wayfarer's Rest","House Vance","House Varner","House Velaryon","House Vikary","House Volmark","House Vypren","House Vyrwel","House Wagstaff","House Waxley","House Wayn","House Waynwood","House Weaver","House Webber","House Westerling","House Whent","House Willum","House Wode","House Woodwright","House Wull","House Wydman","House Wyl","House Wylde","House Wynch","House Wythers","House Yarwyck","House Yew","House Yronwood","Howd Wanderer","Howland Reed","Hrakkar","Hubard Rambton","Hugh Beesbury","Hugh Clifton",
+"Hugh Grandison","Hugh Hungerford","Hugh of the Vale","Hugh","Hugo Vance","Hugo Wull","Hugo","Hugor of the Hill","Humfrey Hewett","Humfrey Hightower","Humfrey Stone","Humfrey Wagstaff","Humfrey Waters","Humfrey","Huntress","Husband","Hyle Hunt","Icemark","Iggo","Igon Vyrwel","Illifer","Illyrio Mopatis","Ilyn Payne","Imry Florent","Indigo Star","Indigo Straits","Inn of the Kneeling Man","Iron Fleet","Iron Holt","Iron Islands","Iron Lady","Iron Shields","Iron Vengeance","Iron Victory","Iron Wind","Iron Wing","Ironbelly","Ironborn",
+"Ironoaks","Irri","Isle of Birds","Isle of Cedars","Isle of Love","Isle of Pigs","Isle of Tears","Isle of Toads","Izembaro","Jacelyn Bywater","Jack Bulwer","Jack-Be-Lucky","Jacks","Jade Sea","Jaehaerys I Targaryen","Jaehaerys II Targaryen","Jafer Flowers","Jaggot","Jaime Frey","Jaime Lannister","Jalabhar Xho","Jammos Frey","Janei Lannister","Janna Tyrell","Janos Slynt","Janyce Hunter","Jaqen H'ghar","Jared Frey","Jaremy Rykker","Jarl","Jarmen Buckwell","Jarmen","Jason Mallister","Jasper Arryn","Jasper Redfort","Jasper Waynwood","Jasper","Jate Blackberry","Jax","Jayde","Jayne Bracken","Jeffory Mallister",
+"Jeffory Norcross","Jennelyn Fowler","Jeor Mormont","Jeren","Jeyne Beesbury","Jeyne Darry","Jeyne Farman","Jeyne Fossoway","Jeyne Fowler","Jeyne Heddle","Jeyne Poole","Jeyne Swann","Jeyne Westerling","Jeyne","Jezhene","Jhala","Jhaqo","Jhiqui","Jhogo","Jhogos Nhai","Joanna Lannister","Jocelyn Swyft","Jodge","Joffrey Baratheon","Jojen Reed","Jokin","Jommo","Jon Arryn","Jon Bettley","Jon Connington","Jon Fossoway","Jon Hollard","Jon Lothston","Jon Lynderly","Jon Myre","Jon Redfort","Jon Snow",
+"Jon Umber (Greatjon)","Jon Umber (Smalljon)","Jon Waters","Jon","Jonella Cerwyn","Jonnel Stark","Jonos Bracken","Jonothor Darry","Jorah Mormont","Joramun","Jorquen","Jory Cassel","Joseran","Joseth","Josmyn Peckledon","Joso's Prank","Joss Stilwood","Joss the Gloom","Joss","Josua Willum","Joth Quickbow","Jothos Slynt","Joy Hill","Joyeuse Erenford","Jurne","Justin Massey","Jyana","Jyck","Jynessa Blackmont","Jyzene","Kaeth","Karhold","Karl","Karlon Stark","Karyl Vance","Kasporio","Kayce","Kedge","Kedry","Kegs","Kella","Kem","Kemmett Pyke","Kenned","Kennet","Kennos of Kayce","Ketter","Kevan Lannister","Kezmya","Khal","Khalasar","Khaleesi","Khorane Sathmantes",
+"Khrazz","Khyzai Pass","Kindly Man","King Cutthroat","King Joffrey's Valor","King Robert's Hammer","Kingfisher","King's Landing","Kingsgrave","Kingsguard","Kingslander","Kingsmoot","Kingswood Brotherhood","Kingswood","Kirth Vance","Kite","Known World","Ko","Koj","Kojja Mo","Korra","Koss","Kovarro","Kraken's Kiss","Krakens","Kraznys mo Nakloz","Kromm","Kurleket","Kurz","Kyle Condon","Kyle Royce","Kyleg","Kym","Lacey","Lady Bright","Lady Harra","Lady Joanna","Lady Lyanna","Lady Marya","Lady of Silk","Lady of the Leaves","Lady of the Tower","Lady Olenna","Lady Ushanora","Lady's Shame","Lambert Turnberry","Lambswold","Lamentation","Lamprey","Lance","Lancel Lannister","Lands of the Long Summer","Lann the Clever","Lanna (Happy Port)","Lanna (Stoney Sept)",
+"Lanna","Lannisport","Larence Snow","Lark the Sisterman","Larra Blackmont","Larraq","Last Hearth","Last Lament","Laswell Peake","Laughing Lion","Laughing Lord","Layna","Leaf","League","Leal","Leathers","Lem","Lemonwood","Lenn","Lennocks","Lenwood Tawney","Lenyl","Leo Lefford","Leo Tyrell (Citadel)","Leo Tyrell","Leo","Leobald Tallhart","Leona Woolfield","Leonella Lefford","Leonette Fossoway","Leslyn Haigh","Leslyn (Stoney Sept)","Leslyn","Lester","Leviathan","Lew","Lewis Lanster","Lewyn Martell","Lewys Lydden","Lewys Piper","Lewys the Fishwife","Lewys","Leyla Hightower","Leyton Hightower","Lharys","Lhazar","Lhazareen","Lia Serry","Liane Vance","Lichyard","Lioness","Lionstar","Lister","Littlesister","Lizard-lion","Lollys Stokeworth","Lomas Estermont",
+"Lommy Greenhands","Lomys","Lonely Hills","Lonely Light","Long Barrow","Long Lake","Long Lances","Longbow Hall","Longship","Longsister","Longtable","Longwater Pyke","Loras Tyrell","Lorath","Lorcas","Lord Dagon","Lord Faro's Belly","Lord Harroway's Town","Lord Hewett's Town","Lord of Bones","Lord of Harmony","Lord Quellon","Lord Renly","Lord Steffon","Lord Tywin","Lord Vickon","Lordling","Lordsport","Loren Lannister","Lorent Caswell","Lorent Lorch","Loreza Sand","Lorimer","Lormelle","Lorren Longaxe","Lorren","Lothar Frey","Lothar Mallery","Lothar","Lotho Lornel","Lothor Brune","Lotus Port","Loyal Man","Lucamore Strong","Lucan","Lucantine Woodwright","Lucas Blackwood","Lucas Codd","Lucas Lothston","Luceon Frey",
+"Lucias Vypren","Lucifer Hardy","Lucifer Long","Lucifer","Lucimore Botley","Lucion Lannister","Luco Prestayn","Lucos Chyttering","Lucos","Luke","Lum","Luthor Tyrell","Luton","Luwin","Lyanna Mormont","Lyanna Stark","Lyanna","Lyessa Flint","Lyle Crakehall","Lyman Darry","Lymond Goodbrook","Lymond Lychester","Lymond Pease","Lymond Vikary","Lymond","Lyn Corbray","Lynesse Hightower","Lyonel Corbray","Lyonel Frey","Lyonel Selmy","Lyonel Strong","Lyonel","Lyra Mormont","Lys","Lysa Tully","Lysono Maar","Lythene Frey","Mace Tyrell","Mad Huntsman","Mad Prendos","Maddy","Maege Mormont","Maegelle Frey","Maegor I Targaryen","Maelys Blackfyre","Maester Aemon","Maester Grazdan","Maester Gulian","Maester Myles","Maester Theomore","Maester","Mag Mar Tun Doh Weg",
+"Maggy the Frog","Magister Manolo","Magnar","Mago","Maidenpool","Maiden's Bane","Maiden's Men","Malaquo Maegyr","Malcolm","Mallador Locke","Malleon","Malliard","Mallor","Malo Jayn","Malora Hightower","Malwyn Frey","Mammoths","Mance Rayder","Mander","Mandon Moore","Manfred Swann","Manfrey Martell","Manfryd Lothston","Manfryd Merlyn","Manfryd Yew","Manfryd","Manly Stokeworth","Manse","Mantarys","Manticore","Manticores","Marei","Margaery Tyrell","Marghaz zo Loraq","Margot Lannister","Marianne Vance","Maric Seaworth","Marillion","Maris","Marissa Frey","Mariya Darry","Mark Mullendore","Mark Ryswell","Mark","Marlon Manderly","Maron Botley","Maron Greyjoy","Maron Volmark","Maron","Marq Mandrake","Marq Piper","Marq Rankenfell","Marq","Martyn Cassel","Martyn Lannister","Martyn Rivers","Martyn","Marwyn Belmore",
+"Marwyn the Mage","Marwyn","Marya Seaworth","Masha Heddle","Maslyn","Mathis Frey","Mathis Rowan","Mathos Mallarawan","Matrice","Matthar","Matthos Seaworth","Mawney","Maynard","Meadowlark","Mebble","Medger Cerwyn","Medwick Tyrell","Meera Reed","Meereen","Meg","Megga Tyrell","Meha","Meizo Mahr","Mela","Melaquin","Melara Crane","Melara Hetherspoon","Melara","Meldred Merlyn","Melessa Florent","Meliana","Melicent","Melisandre of Asshai","Mellario of Norvos","Mellei","Melly","Meralyn","Meredyth Crane","Merianne Frey","Meribald","Meris","Merling King","Merling Queen","Merlon Crakehall","Mermaid's Palace","Merrel","Merrell Florent","Merrett Frey","Merrit","Merry Midwife","Meryn Trant","Methyso","Mezzara","Michael Mertyns","Mikken","Miklaz","Milk of the poppy","Milkwater","Mina Tyrell","Minisa Whent","Mirri Maz Duur","Missandei","Moat Cailin","Moelle","Mohor","Mole's Town","Mollander","Mollono Yos Dob","Mollos","Monford Velaryon",
+"Moon Boy","Mooncalf","Moonrunner","Moonshadow","Moqorro","Mord","Mordane","Moredo Prestayn","Moreo Tumitis","Morgan Liddle","Morgan","Morgarth","Morgil","Moribald Chester","Morna White Mask","Moro","Morosh the Myrman.","Morra","Morrec","Morros Slynt","Mors Manwoody","Mors Martell","Mors Umber","Mors","Morton Waynwood","Morya Frey","Mother Mole","Motho","Mountain Clans","Mountains of the Moon","Mullin","Mully","mummer","Mummer's Ford","Munciter","Munda","Murch","Murder hole","Murenmure","Mya Stone","Mycah","Mychel Redfort","Mylenda Caron","Myles Manwoody","Myles Mooton","Myles Toyne","Myles","Myr","Myraham","Myranda Royce","Myrcella Baratheon","Myria Jordayne","Myriah Martell","Myrielle Lannister","Myrio Myrakis","Myrmello","Myrtle","Naath","Naerys Targaryen","Nage","Nagga","Nagga's Cradle","Nagga's Hill","Nail","Name day","Nan","Narbert Grandison","Narbert","Narbo","Narraqqa","Narrow Sea",
+"Neck","Neep","Nella","Nestor Royce","New Ghis","Niello","Night soil","Nightflyer","Nightfort","Nightingale","Night's King","Night's Watch","Nightsong","Ninestars","Nissa Nissa","Noble Lady","Noho Dimittis","Nolla","Norbert Vance","Norjen","Normund Tyrell","Norne Goodbrother","Norren","North","Norvos","Notch","Nunn's Deep","Nute the Barber","Nutten","Nyessos Vhassar","Nymella Toland","Nymeria Sand","Nymeria","Nymos","Nysterica","Oakenshield","Obara Sand","Obella Sand","Oberyn Martell","Ocean Road","Ogo","Old Crackbones","Old Ghis","Old Grey Gull","Old Oak","Old Stone Bridge","Old Tattersalt","Old Wyk","Oldcastle","Oldstones","Oldtown","Olenna Redwyne","Ollidor","Ollo Lophand","Olymer Tyrell","Olyvar Frey","Olyvar Oakheart","Olyvar","Omer Blackberry","Ondrew Locke","Orbelo","Orbert Caswell","Ordello","Orell","Orivel","Orkmont","Orland","Ormond (Stark)","Ormond Yronwood","Ormond","Ormund Wylde",
+"Oros","Orphan Oss","Orson Stone","Orton Merryweather","Osbert Serry","Osfryd Kettleblack","Osgood Arryn","Osha","Osmund Kettleblack","Osmynd","Osney Kettleblack","Ossifer Plumm","Ossy","Oswell Kettleblack","Oswell Whent","Oswell","Oswyn","Othell Yarwyck","Othor","Otter Gimpknee","Otto Hightower","Ottomore","Ottyn Wythers","Oubliette","Owen (Brother to Maribald)","Owen Inchfield","Owen Merryweather","Owen Norrey","Owen the Oaf","Owen","Oxcross","Oznak zo Pahl","Palanquin","Palfrey","Palla","Paps","Parchments","Parmen Crane","Parquello Vaelaros","Patchface","Pate (Citadel)","Pate (Night's Watch)","Pate of the Blue Fork","Pate (Whipping Boy)","Pate","Patrek Mallister","Patrek of King's Mountain","Patrek","Pauldron","Paxter Redwyne","Pebbleton","Pendric Hills","Penny","Pentos","Peregrine","Perestan","Perkin Follard","Perra Frey","Perriane Frey","Perros Blackmont","Perwyn Frey","Peter Plumm","Petyr Baelish",
+"Petyr Frey","Philip Foote","Pretty Pia","Piety","Pinchbottom Petto","Pinkmaiden Castle","Pisswater Prince","Planky Town","Podrick Payne","Poetess","Pollitor","Polliver","Pono","Porridge","Portcullis","Porther","Portifer Woodwright","Postern","Poul Pemford","Poxy Tim","Praed","Prayer","Prendahl na Ghezn","Preston Greenfield","Pride of Driftmark","Prince Aemon","Prince's Pass","Princess Daena","Princess Myrcella","Princess Rhaenys","Puckens","Puddingfoot","Pureborn Princess","Pureborn","Pyat Pree","Pycelle","Pyg","Pyke","Pykewood Peak","Pylos","Pynto","Pypar","Pytho Malanon","Qalen","Qarl the Maid","Qarl the Thrall","Qarl","Qarlton Chelsted","Qarro Volentin","Qarth","Qartheen","Qavo Nogarys","Qezza","Qhorin Halfhand","Qohor","Qos","Qotho","Quaithe of the Shadow",
+"Quaro","Queen Alysanne","Queen Cersei","Queen Margaery","Queen Nymeria of Rhoyne","Queen Whore","Queenscrown","Queensgate","Quellon Botley","Quellon Greyjoy","Quellon Humble","Quellon","Quence","Quenten Banefort","Quenton Greyjoy","Quenton Hightower","Quenton","Quentyn Martell","Quentyn Qorgyle","Quentyn","Quhuru Mo","Quicksilver","Quiet isle","Quill","Quincy Cox","Quort","Qyburn","Qyle","Rafford","Ragged Jenna","Ragged Standard","Ragnor Pyke","Ragwyle","Rain House","Rainbow Knight","Rainwood","Rakharo","Ralf Kenning","Ralf Stonehouse","Ralf the Limper","Ralf","Ralph Buckler","Ramsay Snow","Ramshead","Randyll Tarly","Rasher","Rast","Rat Cook","Ravella Swann","Ravens","Raventree","Rawney","Raymar Royce","Raymond Nayland","Raymun Darry",
+"Raymund Connington","Raymund Frey","Raymund","Raynald Westerling","Raynard Ruttiger","Raynard","Reach","Reapers Wind","Red Claw","Red Flower Vale","Red God's Wroth","Red Jester","Red Keep","Red Lake","Red Lands","Red Mountains","Red Oarsman","Red Raven","Red Tide","Redwyne Straits","Reek","Regenard Estren","Renfred Rykker","Renly Baratheon","Rennifer Longwaters","Reysen","Reznak mo Reznak","Rhaegar Frey","Rhaegar Targaryen",
+"Rhaegar","Rhaego","Rhaella Targaryen","Rhaelle Targaryen","Rhea Florent","Rhialta Vance","Rhogoro","Rhoynar","Ricasso","Richard Horpe","Richard Lonmouth","Richard Morrigen","Richard","Rickard Karstark","Rickard Stark (King)","Rickard Stark (Lord)","Rickard","Rickon Stark","Rigney","Rills","River Arrow","Riverbend","Riverlands","Riverrun","Robar Royce","Robb Stark","Robert Arryn","Robert Baratheon","Robert Blackwood","Robert Flowers","Robert Strong","Robert","Robert's Rebellion","Robett Glover","Robin (Brother)","Robin Flint","Robin Greyjoy","Robin Hill","Robin Hollard","Robin Moreland","Robin Peasebury",
+"Robin Ryger","Robin","Rodrik Cassel","Rodrik Flint","Rodrik Freeborn","Rodrik Greyjoy","Rodrik Harlaw","Rodrik Ryswell","Rodrik Sparr","Rodrik Stark","Rodrik","Rodwell Stark","Roelle","Roger Hogg","Roggo","Roggon Rustbeard","Roland Crakehall","Rolder","Rolfe The Dwarf","Rolfe","Rollam Westerling","Rolland Storm","Rolley","Rolly Duckfield","Rolph Spicer","Romny Weaver","Ronald Connington","Ronald Storm","Ronald Vance","Ronald","Ronel Rivers","Ronnel Stout","Ronnet Connington","Rook","Roone (Maester)","Roone (Novice)","Roone","Roose Bolton","Rorge","Roro Uhoris","Roryn Drumm","Rosamund Lannister","Roseroad","Rosey","Roslin Frey","Rossart","Rouncey","Roundel","Rowan (Spearwife)","Royce Coldwater","Rudge","Rufus Leek",
+"Rugen","Runceford Redwyne","Runcel Hightower","Runestone","Rupert Brax","Rupert Crabb","Rupert","Rus","Rushes","Russell Merryweather","Ryam Redwyne","Ryamsport","Rycherd Crane","Ryella Royce","Ryger Rivers","Ryk","Rylene Florent","Ryles","Ryman Frey","Rymolf","Rymund the Rhymer","Ryon Allyrion","Saathos the Wise","Saduleon","Sailor's Wife","Salladhor Saan","Sallei Paege","Sallor the Bald","Salloreon","Sallydance","Salt Shore","Saltpans","Salty Wench","Samite","Samwell Spicer","Samwell Stone","Samwell Tarly","Samwell","Sand Snakes","Sandor Clegane","Sandstone","Sansa Stark","Sarella Sand","Sargon Botley","Sarra Frey","Sarya Whent","Satin","Sawane Botley","Sawwood",
+"Scales","Sceptre","Scolera","Sea Bitch","Sea Demon","Sea of Dorne","Sea of Sighs","Sea Song","Seaflower","Seagard","Seahorse","Sealskin Point","Seastrider","Seaswift","Sebastion Errol","Sebaston Farman","Second Sons","Sedgekins","Selaesori Qhoran","Sellsword","Selmond Stackspear","Selwyn Tarth","Selyse Florent","Senelle",
+"Seneschal","septa","Septon Barth","Septon Eustace","Septon Raynard","septon","Ser Arryk","Serala of Myr","Serra Frey","Serwyn of the Mirror Shield","The Seven Kingdoms","Seven Skulls","Sevenstreams","Shadd","Shade","Shadow Lands","Shadow Tower","Shadowcats","Shadrich of the Shady Glen","Shae","Shagga","Shagwell","Shandystone","Shark","Sharna","Sharp Point",
+"Shatterstone","Shayala's Dance","Shella Whent","Sherrer","Sherrit","Shield Islands","Shiera Crakehall","Shierle Swyft","Shipbreaker Bay","Shireen Baratheon","Shirei Frey","Shitmouth","Shivering Sea","Shortear","Shrike","Shy Maid","Shyra Errol","Shyra (Winterfell)","Shyra","Sigfry Stonetree","Sigfryd Harlaw","Sigrin","Silence","Silent Sisters","Silken Cloud","Silken Spirit","Silverfin","Simon Toyne","Singing Stones","Sisterton","Skagos","Skagosi","Skahaz mo Kandaq","Skahazadhan",
+"Skane","Skinner","Skirling Pass","Sky Blue Su","Skyreach","Skyte","Slashed","Slaver's Bay","Slaver's Scream","Sloe-Eyed Maid","Sloey","Small Paul","Smiling Knight","Smiling Sea","Smoking Sea","Snakewood","Snatch","Snowylocks","Softfoot","Solar","Sons of the Harpy","Soren Shieldbreaker","Sorrowful Men","Sothoryos","Sour Alyn","Southshield","Sow's Horn","Spare Boot","Sparrowhawk","spearwife","Sphinxes",
+"Spotted Cat","Spottswood","Squint","Squinter","Squirrel","Stafford Lannister","Stag of the Sea","Stalwart Shield","Stannis Baratheon","Stannis Seaworth","Starfall","Starfish Harbor","Starved Man","Steelskin","Steffar Stammerer","Steffarion Sparr","Steffon Baratheon","Steffon Fossoway","Steffon Frey","Steffon Hollard","Steffon Seaworth","Steffon Stackspear","Steffon Swyft","Steffon Varner","Steffon","Stern Face","Stevron Frey",
+"Stiv","Stone caves","Stone Hedge","Stone Mill","Stonecrab Cay","Stonedoor","Stonehand","Stoneheart","Stonehelm","Stonesnake","Stoney Sept","Stony Shore","Storm Crow","Storm Dancer","Stormcrows","Stormlands","Storm's End","Storrold's Point","Stot","Straits of Qarth","Strongsong","Stygg","Styr","Summer Islands","Summer Sea","Summer Sun","Summerhall","Summer's Dream","Sumner Crakehall","Sunblaze","Sunflower Hall","Sunset Sea","Sunspear","S'vrone","Swan ship","Sweet Cersei","Sweet Lotus Vale","Sweetport Sound","Sweetsister","Swift Sword","Swiftfin","Swordfish","Sybassion","Sybell Spicer","Sybelle Locke","Sylas","Sylva Santagar","Symeon Star-Eyes","Symon Hollard","Symon Santagar","Symon Silver Tongue",
+"Symon Stripeback","Symon","Symond Botley","Symond Frey","Symond Templeton","Symond","Syrio Forel","Taena of Myr","Tagganaro","Tal Toraq","Talbert Serry","Talea","Tall Trees Town","Talla Tarly","Tallad","Talon","Tanda Stokeworth","Tansy","Tanton Fossoway","Tarbeck Hall","Tarber","Tarle","Tattered Prince","Temmo","Temple of Memory","Ten Towers","Ternesio Terys","Terrance Lynderly","Terrence Toyne","Terro","The First Blackfyre Rebellion","The Others","The Reach","The Red Lamb","The Sparr","The Stonehouse","The Trident","The Wars of Conquest","Thenn","Theo Frey","Theo Wull","Theo","Theobald","Theodan Wells","Theodore Tyrell","Theomar Smallwood","Theomar","Theomore Harlaw","Theomore Lannister","Theon Greyjoy","Thirteen","Thistle","Thoren Smallwood","Thormor","Thoros of Myr","Thrall","Thrall's Bane","Three Exiles","Three Sisters","Three Toes","Three Towers","Three-Tooth","Thunderer","Tickler","Tim Stone","Tim Tangletongue","Tim","Timeon of Dorne","Timett","Timon the Scrapesword","Timoth","Tion Frey","Titan's Bastard","Titan's Daughter","Titus Peake","Tobbot","Tobho Mott","Todder","Todric","Toefinger","Togg Joth","Tolos","Tom Codd","Tom Costayne","Tom of Sevenstreams","Tom Tidewood","Tom","Tommen Baratheon","TomToo","Tor","Torbert","Torc, var. torq or torque","Toregg","Torghen Flint","Torman Peake","Tormo Fregar","Tormund","Torrek",
+"Torren Liddle","Torrhen Karstark","Torrhen Stark","Torrhen","Torrhen's Square","Torwold Browntooth","Torwynd","Tothmure","Tourmaline Brotherhood","Tower of Glimmering","Tower of Joy","Trebor Jordayne","Tregar Ormollen","Tremond Gargalen","Trencher","Trianna","Triarch of Volantis","Trident Three","Tristan Mudd","Tristan Rivers","Tristan Ryger","Tristan","Tristifer Botley","Tristimun","Triston of Tally Hill","Triston Sunderland","Triston","Trumpeteer","Trystane Martell","Tuffleberry","Tumberjon","Tumbler's Falls","Tumco Lho","Turncloak","Turquin","Twins","Tya Lannister","Tyana Wylde","Tybero Istarion","Tybolt Crakehall","Tybolt Hetherspoon","Tybolt","Tycho Nestoris","Tyene Sand","Tygett Lannister","Tymor","Tyrek Lannister","Tyria","Tyrion Lannister","Tyrion Tanner","Tyrosh","Tysane Frey","Tysha","Tyta Frey","Tytos Blackwood","Tytos Brax","Tytos Frey","Tytos Lannister","Tytos","Tywin Frey","Tywin Lannister","Uhlan","Ulf the Ill","Ulf","Uller (ironborn)","Uller","Ulmer","Ulthos","Ulwyck Uller","Umar","Umfred","Umma","Undying","Unella","Unicorns","Unsullied","Uplands","Urek","Urras Ironfoot","Urrathon Night-Walker","Urrigon Greyjoy","Urron Greyiron","Urswyck","Urzen","Utherydes Wayn","Uthor Tollett","Utt","Vaellyn","Vaes Dothrak","Vair","Val","Valarr Targaryen",
+"Vale of Arryn","Valonqar","Valyria","Valyrian","Varamyr","Vardis Egen","Vargo Hoat","Varys","vassal","Vayon Poole","Veiled Lady","Vermillion Kiss","Vhagar","Vickon Botley","Vickon Greyjoy","Victaria Tyrell","Victarion Greyjoy","Victor Tyrell","Vinetown","Violet","Visenya Targaryen","Viserys Targaryen","Vixen","Vogarro","Volantis","Vortimer Crane","Vylarr","Vyman","Waif","Walano","Walda Frey","Walder Frey (Big Walder)","Walder Frey (Black Walder)","Walder Frey (Little Walder)","Walder Frey (Lord)","Walder Frey","Walder Rivers","Walder","Waldon Wynch","Walgrave","Wall","Wallace Massey","Wallace Waynwood","Wallace","Wallen","Walton","Waltyr Frey","Walys Flowers","War Galley","Ward","Warhammer","Warrior Wench","Warryn Beesbury","Wat the Blue Bard","Water Gardens","Watkyn","Watt","Watty","Wayfarer's Rest","Waymar Royce.","Waymar","Weasel","Webber (Sellsword)","Weeper","Weeping Tower","Weese","Weirwood","Wenda","Wendamyr","Wendel Frey","Wendel Manderly","Wendel","Wendell Webber","Wendello Qar Deeth","Wendish Town","Wendwater","Werlag","Westerlands","Westeros","Wex Pyke","Whalen Frey","Whaler","Whispering Sound","Whispers","White Harbor","White Hart","White Widow","Whitetree","Whitewalls","Wickenden",
+"Widow of the Waterfront","Widower","Widow's Watch","wight","Wildlings","Wildwind","Will Humble","Will of the Woods","Willam Dustin",
+"Willam Wells","Willam Wythers","Willam","Willamen Frey","Willas Tyrell","Willem Darry","Willem Frey","Willem Lannister","Willem","William Mooton","Willifer","Willis Wode","Willit","Willow Heddle","Willow Witch-eye","Willow","Wind Witch","Windblown","Windproud","Winterfell","Wise Masters","Woe","Wolfswood","Worm River","Woth","Wraith","Wroth","Wulfe","Wun Weg Wun Dar Wun","Wylis Manderly","Wylla Manderly","Wylla (Wet Nurse)","Wylla","Wyman Manderly","Wynafrei Whent","Wynafryd Manderly","Wyndhall","Wynton Stout","Wyvern","Xaro Xhoan Daxos","Xhondo","Yandry","Yeen","Yellow Dick","Yezzan zo Qaggaz","Ygon Farwynd","Ygritte","Yna","Ynyn Yronwood","Yohn Farwynd","Yohn Royce","Yohn","Yoren","Yorko Terys","Ysilla Royce","Ysilla (Shy Maid)","Ysilla","Yunkai","Zachery Frey","Zamettar","Zarabelo","Zei","Zekko","Zharaq zo Loraq","Zhoe Blanetree","Zia Frey","Zollo","Zorse"]
+
+
+/*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
+autocomplete(document.getElementById("myInput"), words);
+</script>
+
+</body>
+</html>
