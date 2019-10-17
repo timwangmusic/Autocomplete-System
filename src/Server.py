@@ -19,10 +19,9 @@ from src.Errors import ReturnResultValueLessThanOne
 class Server:
     """Server class for auto-complete system
 
-    This class creates application server for performing auto-complete functionality.
-    Main API search(str) searches a term in server and returns top results to the user.
-    New servers can be established from Neo4j database which stores historical search data.
-    Results may be outdated before calling update trie function.
+    This class defines application server for performing auto-complete functionality.
+    The main API search(str) searches a term in server and returns top results to the user.
+    New servers can be established from Neo4j database which stores search history.
 
     Attributes:
         Server.server_index: int
@@ -34,7 +33,8 @@ class Server:
     server_index = 0
     server_update_frequency = 1
 
-    def __init__(self, num_res_return=10, root=None, connect_to_db=True, testing=False, node_count=1):
+    def __init__(self, *, num_res_return: int = 10, root: TrieNode = None, connect_to_db: bool = True,
+                 testing: bool = False, node_count: int = 1):
         """
         :param num_res_return: maximum number of results to return to user
         :param root: Trienode
@@ -44,7 +44,7 @@ class Server:
         self.__class__.server_index += 1
         if connect_to_db:
             self.db = Database.DatabaseHandler()
-            self._selector = self.db.graph.nodes        # get node matcher
+            self._selector = self.db.graph.nodes  # get node matcher
 
         if root is None:
             self.__root = TrieNode(prefix='', is_word=False)
@@ -53,7 +53,7 @@ class Server:
 
         self.vocab = set()
         self.node_count = node_count
-        self.search_count = 0   # tracking number of search before performing trie update
+        self.search_count = 0  # tracking number of search before performing trie update
 
         self.testing = testing
 
@@ -70,7 +70,7 @@ class Server:
                 for row in words_reader:
                     _, rank, word, freq, _ = row
                     freq = int(freq)
-                    self.__insert(word, True, freq, from_db=True)
+                    self.__insert(word, isword=True, count=freq, from_db=True)
         else:
             self.word_dictionary = set()
 
@@ -139,7 +139,7 @@ class Server:
                     name='',
                     )
         node['count'] = self.__root.total_counts()
-        tx.create(node)     # create root in neo4j
+        tx.create(node)  # create root in neo4j
         queue.append((node, self.__root))
         count = 0
 
@@ -214,10 +214,11 @@ class Server:
             for rel in graph.match(nodes=[node], r_type=Database.Parent):
                 if rel is not None:
                     dfs(rel.nodes[1])
+
         dfs(root)
         self.update_top_results()
 
-    def __insert(self, word, isword=True, count=0, from_db=False):
+    def __insert(self, word: str, *, isword: bool = True, count: int = 0, from_db: bool = False) -> TrieNode:
         """
         This method inserts a word into the trie. This method should be hidden from user.
         Only method build_trie() and search() should call this method. So we make it internal.
@@ -235,7 +236,7 @@ class Server:
         for char in word:
             if char not in cur.children:
                 self.node_count += 1
-                cur.children[char] = TrieNode(prefix=cur.prefix+char, parent=cur)
+                cur.children[char] = TrieNode(prefix=cur.prefix + char, parent=cur)
             cur = cur.children[char]
 
         cur.isWord = isword
@@ -312,7 +313,7 @@ class Server:
                 q.append(child)
         return res, node_count
 
-    def search(self, search_term):
+    def search(self, search_term: str) -> list:
         """
         API for clients to get a list of top suggestions.
         The input may be a sentence, with words separated by space.
@@ -362,7 +363,7 @@ class Server:
             return
         for word in word_list[idx]:
             path.append(word)
-            Server.__search_helper(word_list, idx+1, path, res)
+            Server.__search_helper(word_list, idx + 1, path, res)
             path.pop()
 
     def update_top_results(self):
@@ -370,12 +371,14 @@ class Server:
         This method builds top suggestion results from bottom up.
         :return: None
         """
+
         def dfs(node):
             if len(node.children) == 0:
                 Server.update_parent_new(node, Counter())
                 return
             for child in node.children:
                 dfs(node.children[child])
+
         dfs(self.__root)
 
     @staticmethod
@@ -444,7 +447,7 @@ class Server:
         counter = Counter()
         while idx < len(counts):
             term = ' '.join(counts[idx].split('_'))
-            counter[term] = int(counts[idx+1])
+            counter[term] = int(counts[idx + 1])
             idx += 2
         return counter
 
@@ -455,6 +458,7 @@ class Server:
         The purpose of this function is for rebuilding Trie in case of server failure.
         :return: List[List[str]]
         """
+
         def dfs(node):
             nonlocal data
             if node is None:
@@ -467,6 +471,7 @@ class Server:
             data.append([node.prefix, isword, top_results, str(len(node.children))])
             for child in node.children:
                 dfs(node.children[child])
+
         data = []
         dfs(self.__root)
         return data
@@ -499,7 +504,7 @@ class Server:
                 if index == 0:
                     root = new_node
                 node_count += 1
-                index = build_trie(new_node, int(_num_children_str), index+1)
+                index = build_trie(new_node, int(_num_children_str), index + 1)
             return index
 
         root = None
