@@ -11,6 +11,7 @@ Auto-complete system using Neo4j graph database for storing data and providing f
 * Serialization and deserialization of servers for data exchange.
 
 ### How to use
+* Python version >= 3.7
 * Install `Python3 venv`
 ```
 macOS/Linux

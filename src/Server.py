@@ -6,6 +6,7 @@ import logging
 import logging.config
 import yaml
 import csv
+from typing import List
 
 # from nltk.corpus import words as en_corpus
 from py2neo import Node
@@ -14,6 +15,10 @@ from src.Spell import Spell
 
 from . import Database
 from src.Errors import ReturnResultValueLessThanOne
+
+# type alias
+Word_list = List[str]
+Word_lists = List[Word_list]
 
 
 class Server:
@@ -313,7 +318,7 @@ class Server:
                 q.append(child)
         return res, node_count
 
-    def search(self, search_term: str) -> list:
+    def search(self, search_term: str) -> Word_list:
         """
         API for clients to get a list of top suggestions.
         The input may be a sentence, with words separated by space.
@@ -357,13 +362,13 @@ class Server:
         return res[:self.num_res_return]
 
     @staticmethod
-    def __search_helper(word_list, idx, path, res):
-        if idx == len(word_list):
+    def __search_helper(words: Word_list, idx: int, path: Word_list, res: Word_lists):
+        if idx == len(words):
             res.append(list(path))
             return
-        for word in word_list[idx]:
+        for word in words[idx]:
             path.append(word)
-            Server.__search_helper(word_list, idx + 1, path, res)
+            Server.__search_helper(words, idx + 1, path, res)
             path.pop()
 
     def update_top_results(self):
