@@ -3,14 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width", initial-scale=1.0">
+    <meta name="viewport" content="width=device-width", initial-scale=1.0>
     <meta http-equiv="X-UA-Compatible" content="ie-edge">
     <title>
         autocomplete
     </title>
     <!--Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <!-- <link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css"> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
@@ -22,18 +21,14 @@
 <h1> An Auto-complete system </h1>
 
 <!-- linking script -->
-<!-- <button onclick="window.location.href = '/search?term=';">Search</button> -->
-    <script type="text/javascript">
+    <!-- <script type="text/javascript">
     function search_words()
     {   
-        // type="search"
         var url = document.getElementById("searchTxt").value;
         setTimeout(function(){window.location.href = '/search?term=' + url;});
     }
-    </script>
-    <!-- input tag -->
+    </script> -->
     <label for = "Search-search">Search for words:</label>
-<!--input id="searchbar" onkeyup="search_words()" type="text" name="search" placeholder="Search and go wild ..."-->
     <input type="search" 
         results = 5 
         id = "searchTxt" 
@@ -47,7 +42,6 @@
     <b>History of Words Searched</b>
 </h3>
 
-<!-- ordered list -->
 <ol id='list'> 
         <li class="words">In</li> 
         <li class="words">the</li> 
@@ -63,12 +57,32 @@
     </ol> 
 
 <script>
+function search_words()
+{   
+    var url = document.getElementById("searchTxt").value;
+    setTimeout(function(){window.location.href = '/search?term=' + url;});
+}
+
+function redirectToSearchResults() {
+    const searchInput = document.getElementById("searchTxt");
+    searchInput.addEventListener(
+        'keyup', function onEvent(e) {
+            if (e.keyCode === 13) {
+                console.log("user starts search");
+                search_words();
+            }
+        }
+    )
+}
+
 function sendTimeToServer(){
     var time = new Date();
     var i = document.createElement("img");
     i.src = "/getTime?time=" + time;
     document.getElementById("time").innerHTML = time;
 }
+
+redirectToSearchResults();
 </script>
 <button onclick = "sendTimeToServer()">update time</button>
 <div id = "time">Time: </div>
