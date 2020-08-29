@@ -204,7 +204,7 @@ class Server:
     def build_trie(self):
         """
         This method builds trie server with TrieNode-labeled nodes from the database.
-        Improves run-time by only insert complete words.
+        Improves run-time by only inserting complete words.
         :return: None
         """
         self.app_reset()
@@ -214,7 +214,7 @@ class Server:
         def dfs(node):
             prefix, isword, count = node['name'], node['isword'], node['count']
             if isword:
-                self.__insert(prefix, isword, from_db=True, count=count)
+                self.__insert(prefix, isword=True, from_db=True, count=count)
             # find all parent-children relationships
             for rel in graph.match(nodes=[node], r_type=Database.Parent):
                 if rel is not None:
