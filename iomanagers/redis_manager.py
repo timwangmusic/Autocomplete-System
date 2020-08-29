@@ -12,6 +12,8 @@ class RedisManager:
 
     # save search results as Redis list
     def cache_search_results(self, search_term: str, search_results: list) -> None:
+        if search_results is None or len(search_results) == 0:
+            return
         redis_key = "search_term:" + search_term
         self.redis_client.rpush(redis_key, *search_results)
 
