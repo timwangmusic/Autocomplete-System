@@ -73,7 +73,7 @@ class Server:
             with open('data/5000_most_freq_words.csv') as csv_file:
                 words_reader = csv.reader(csv_file)
                 for row in words_reader:
-                    _, rank, word, freq, _ = row
+                    _, _, word, freq, _ = row
                     freq = int(freq)
                     self.__insert(word, isword=True, count=freq, from_db=True)
         else:
@@ -405,12 +405,12 @@ class Server:
         :return: None
         """
         root = server.__root
-        for child, node in root.children.items():
+        for _, node in root.children.items():
             Server.__compress(node)
 
     @staticmethod
     def __combine(parent):
-        for child, node in parent.children.items():
+        for _, node in parent.children.items():
             parent.prefix = node.prefix
             parent.children = node.children
             parent.isWord = node.isWord
@@ -422,7 +422,7 @@ class Server:
             return
         while not node.isWord and len(node.children) == 1:
             node = Server.__combine(node)
-        for child, child_node in node.children.items():
+        for _, child_node in node.children.items():
             Server.__compress(child_node)
 
     @staticmethod

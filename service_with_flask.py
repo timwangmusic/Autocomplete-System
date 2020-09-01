@@ -10,6 +10,7 @@ from src.Server import Server
 from iomanagers.redis_manager import RedisManager
 from flask import Flask, url_for, request, render_template
 import datetime
+import logging
 
 app = Flask(__name__)
 server = Server(connect_to_db=False)
@@ -40,12 +41,18 @@ def autocomplete():
     if params is None or params.get('term') is None:
         return render_template("error_input.html")
 
-    term = params.get('term')
+    term = params.get('term')        
+    
+    # make no distinction between empty string and a string of all spaces
+    term = term.strip()
+
     # check autocomplete results from Redis first
     search_result = redis_mgr.get_search_results(term)
+    logging.debug(f"the search result for {term} is: {search_result}")
 
     if not search_result:
         search_result = server.search(term)
+
         redis_mgr.cache_search_results(term, search_result)
 
     return render_template("search_results.html", term=term, results=search_result)

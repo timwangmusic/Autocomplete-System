@@ -43,6 +43,14 @@ def test_insert_single_word(app, input_str, expected):
     assert (node.prefix, node.isWord) == (expected, True)
 
 
+def test_search_empty_string(app):
+    # Searching with empty string should resturn empty list
+    term = ''
+    app.search(term)
+    app.update_top_results()
+    assert len(app.search(term)) == 0
+
+
 def test_search_with_space(app):
     # After insert a space, should return an empty list
     app.search(' ')
