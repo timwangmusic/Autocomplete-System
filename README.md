@@ -22,6 +22,6 @@ source env/bin/activate
 Windows
 python -m venv env
 ```
-* Run `pip3 install requirements.txt` to install the python3 requirements
+* Run `pip3 install -r requirements.txt` to install the python3 requirements
 * Run `python service_flask.py` to start REST service.
 * Run `python analytics.py` to generate usage reports.
