@@ -11,6 +11,7 @@ from iomanagers.redis_manager import RedisManager
 from flask import Flask, url_for, request, render_template
 import datetime
 import logging
+import json
 
 app = Flask(__name__)
 server = Server(connect_to_db=False)
@@ -31,6 +32,9 @@ def getTime():
     content = f"Thanks for visiting, Time now {now}"
     return content
 
+@app.route("/search_history", methods=["GET"])
+def getSearchHistory():
+    return json.dumps({"result": list(server.search_history)})
 
 @app.route('/search', methods=["GET"])
 def autocomplete():

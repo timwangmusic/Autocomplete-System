@@ -23,8 +23,7 @@
 
         <div class="column">
 
-            <input type="search" id="searchTerm"
-                placeholder="Search and go wild ..">
+            <input type="search" id="searchTerm" placeholder="Search and go wild ..">
             <button class="btn btn-outline-primary" onclick="search_words()">Search</button>
 
             <br>
@@ -34,18 +33,7 @@
                 <b>Search History</b>
             </h3>
 
-            <ul id='list'>
-                <li class="words">In</li>
-                <li class="words">the</li>
-                <li class="words">crib</li>
-                <li class="words">Fish</li>
-                <li class="words">Gorilla</li>
-                <li class="words">Monkey</li>
-                <li class="words">May</li>
-                <li class="words">World</li>
-                <li class="words">Lord</li>
-                <li class="words">broken</li>
-                <li class="words">Horse</li>
+            <ul id='search_history'>
             </ul>
         </div>
         <script>
@@ -77,6 +65,19 @@
                 document.getElementById("time").innerHTML = time;
             }
 
+            async function loadSearchHistory() {
+                const url = '/search_history';
+                const obj = await (await fetch(url)).json();
+
+                const search_history = document.getElementById("search_history");
+                let terms = "";
+                for (const term of obj.result) {
+                    terms += "<li>" + term + "</li>"
+                }
+                search_history.innerHTML = terms;
+            }
+
+            loadSearchHistory();
             redirectToSearchResults();
         </script>
 </body>

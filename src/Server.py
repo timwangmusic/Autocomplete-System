@@ -61,6 +61,8 @@ class Server:
         self.search_count = 0  # tracking number of search before performing trie update
 
         self.testing = testing
+        # displays at most 10 terms in history
+        self.search_history = deque(maxlen=10)
 
         # Logging facilities
         if not testing:
@@ -330,6 +332,8 @@ class Server:
         if not isinstance(search_term, str):
             raise TypeError("{} is not a string".format(search_term))
 
+        # most recently searched at the leftmost
+        self.search_history.appendleft(search_term)
         _words = search_term.lower().split()
         if len(_words) == 0:
             return []
