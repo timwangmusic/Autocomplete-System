@@ -1,15 +1,16 @@
 <!doctype html>
 <title>Search Results</title>
 {% if results %}
-  <h2>Auto-complete results for {{term}} are:</h2>
-    <ul>
-        {% for result in results%}
-            <li> {{result}} </li>
-        {% endfor %}
-    </ul>
+<h2>Auto-complete results for {{term}} are:</h2>
+<ul>
+  {% for result in results%}
+  <li> {{result}} </li>
+  {% endfor %}
+</ul>
 {% else %}
-  <h2>No result found for {{term}}!</h2>
+<h2>No result found for {{term}}!</h2>
 {% endif %}
+
 <body>
   <button onclick="window.location.href = '/'">Home</button>
 </body>

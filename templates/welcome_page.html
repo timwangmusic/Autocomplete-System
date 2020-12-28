@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width", initial-scale=1.0>
+    <meta name="viewport" content="width=device-width" initial-scale=1.0>
     <meta http-equiv="X-UA-Compatible" content="ie-edge">
     <title>
         autocomplete
@@ -17,76 +17,69 @@
 </head>
 
 <body>
+    <div class="container">
 
-<h1> An Auto-complete system </h1>
+        <h1 style="color:darkslateblue"> Text Autocomplete </h1>
 
-<!-- linking script -->
-    <!-- <script type="text/javascript">
-    function search_words()
-    {   
-        var url = document.getElementById("searchTxt").value;
-        setTimeout(function(){window.location.href = '/search?term=' + url;});
-    }
-    </script> -->
-    <label for = "Search-search">Search for words:</label>
-    <input type="search" 
-        results = 5 
-        id = "searchTxt" 
-        name="q" 
-        aria-label="Search for auto-complete" 
-        placeholder="Search and go wild ..">
-    <button onclick="search_words();">Search!</button>
-    <p id="demo"></p>
+        <div class="column">
 
-<h3>
-    <b>History of Words Searched</b>
-</h3>
+            <input type="search" id="searchTerm" placeholder="Search and go wild ..">
+            <button class="btn btn-outline-primary" onclick="search_words()">Search</button>
 
-<ol id='list'> 
-        <li class="words">In</li> 
-        <li class="words">the</li> 
-        <li class="words">crib</li> 
-        <li class="words">Fish</li> 
-        <li class="words">Gorilla</li> 
-        <li class="words">Monkey</li> 
-        <li class="words">May</li> 
-        <li class="words">World</li> 
-        <li class="words">Lord</li> 
-        <li class="words">broken</li> 
-        <li class="words">Horse</li> 
-    </ol> 
+            <br>
+            <br>
 
-<script>
-function search_words()
-{   
-    var url = document.getElementById("searchTxt").value;
-    setTimeout(function(){window.location.href = '/search?term=' + url;});
-}
+            <h3>
+                <b>Search History</b>
+            </h3>
 
-function redirectToSearchResults() {
-    const searchInput = document.getElementById("searchTxt");
-    searchInput.addEventListener(
-        'keyup', function onEvent(e) {
-            if (e.keyCode === 13) {
-                console.log("user starts search");
-                search_words();
+            <ul id='search_history'>
+            </ul>
+        </div>
+        <script>
+            function search_words() {
+                // Get search term from user input
+                const searchTerm = document.getElementById("searchTerm").value;
+                setTimeout(function () {
+                    window.location.href = '/search?term=' + searchTerm;
+                });
             }
-        }
-    )
-}
 
-function sendTimeToServer(){
-    var time = new Date();
-    var i = document.createElement("img");
-    i.src = "/getTime?time=" + time;
-    document.getElementById("time").innerHTML = time;
-}
+            function redirectToSearchResults() {
+                const searchInput = document.getElementById("searchTerm");
+                searchInput.addEventListener(
+                    'keyup',
+                    function onEvent(e) {
+                        if (e.keyCode === 13) {
+                            console.log("user starts search");
+                            search_words();
+                        }
+                    }
+                )
+            }
 
-redirectToSearchResults();
-</script>
-<button onclick = "sendTimeToServer()">update time</button>
-<div id = "time">Time: </div>
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/index.css')}}">
+            function sendTimeToServer() {
+                var time = new Date();
+                var i = document.createElement("img");
+                i.src = "/getTime?time=" + time;
+                document.getElementById("time").innerHTML = time;
+            }
+
+            async function loadSearchHistory() {
+                const url = '/search_history';
+                const obj = await (await fetch(url)).json();
+
+                const search_history = document.getElementById("search_history");
+                let terms = "";
+                for (const term of obj.result) {
+                    terms += "<li>" + term + "</li>"
+                }
+                search_history.innerHTML = terms;
+            }
+
+            loadSearchHistory();
+            redirectToSearchResults();
+        </script>
 </body>
 
 </html>
