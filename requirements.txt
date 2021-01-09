@@ -1,5 +1,7 @@
 pytest
 redis
+sklearn
+numpy
 Flask==1.1.1
 py2neo==4.3.0
 PyYAML==5.1.2
