@@ -2,6 +2,8 @@ pytest
 redis
 sklearn
 numpy
-Flask==1.1.1
+Flask==1.1.4
 py2neo==4.3.0
 PyYAML==5.4
+jinja2<3.1.0
+markupsafe==2.0.1
