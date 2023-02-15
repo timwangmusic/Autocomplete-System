@@ -1,9 +1,8 @@
 """
-Use Flask to create simple auto-complete service
+Use Flask to create a simple autocomplete service
 
 To use:
     run py service_with_flask.py
-    in browser: http://localhost:5000/autocomplete?term=search_term
 """
 
 from src.Server import Server
@@ -19,8 +18,8 @@ redis_mgr = RedisManager("localhost", "6379", 0)
 
 
 @app.route('/', methods=["GET"])
-def welcome():
-    return render_template("welcome_page.html")
+def home():
+    return render_template("index.html")
 
 
 @app.route("/getTime", methods=["GET"])
@@ -43,7 +42,7 @@ def autocomplete():
     """
     params = request.args  # parsed url args as a immutable multi-dict
     if params is None or params.get('term') is None:
-        return render_template("error_input.html")
+        return json.dumps({"result": list()})
 
     term = params.get('term')        
     
@@ -59,12 +58,12 @@ def autocomplete():
 
         redis_mgr.cache_search_results(term, search_result)
 
-    return render_template("search_results.html", term=term, results=search_result)
-
+    return json.dumps({"results": search_result})
 
 with app.test_request_context():
-    print(url_for('welcome'))
+    print(url_for('home'))
     print(url_for('autocomplete'))
+    print(url_for('static', filename='js/index.js'))
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8080)
