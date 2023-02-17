@@ -35,7 +35,7 @@ def history():
     """
     Returns: search history
     """
-    return json.dumps({"result": list(server.search_history)})
+    return json.dumps({"result": redis_mgr.get_search_history()})
 
 
 @app.route('/search', methods=["GET"])
@@ -51,6 +51,8 @@ def autocomplete():
 
     # make no distinction between empty string and a string of all spaces
     term = term.strip()
+
+    redis_mgr.cache_search_history(term)
 
     # check autocomplete results from Redis first
     search_result = redis_mgr.get_search_results(term)

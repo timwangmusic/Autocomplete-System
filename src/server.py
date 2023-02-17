@@ -42,7 +42,7 @@ class Server:
                  testing: bool = False, node_count: int = 1):
         """
         :param num_res_return: maximum number of results to return to user
-        :param root: Trienode
+        :param root: Trie node
         :param connect_to_db: True if server is connected to a database
         :param testing: True if server constructed in test scripts
         """
@@ -166,7 +166,6 @@ class Server:
 
         tx.commit()
         if not self.testing:
-            # self.logger.info('Finished building database. Number of nodes created is {count}'.format(count=count))
             self.logger.info(f'Finished building database. Number of nodes created is {count}')
 
         if self.testing and tx.finished():
@@ -174,7 +173,7 @@ class Server:
 
     def update_db(self):
         """
-        Update database with latest application server usage
+        Update database with the latest application server usage
         :return: None
         """
         root = self.__root
@@ -235,9 +234,6 @@ class Server:
         :param from_db: True if the method is called by build_trie()
         :return: Trie node which correspond to the word inserted
         """
-
-        # if word in Trie.english_words:
-        # self.vocab.add(word)
         cur = self.__root
 
         for char in word:
@@ -255,7 +251,6 @@ class Server:
             cur.count += 1
 
         if not self.testing:
-            # self.insertLogger.debug('Insert used for {word}'.format(word=word))
             self.insertLogger.debug(f'Insert used for {word}')
 
         return cur
@@ -358,7 +353,6 @@ class Server:
             self.search_count = 0
             self.update_top_results()
 
-        # result = [word[0] for word in last_node.top_results.most_common(self.num_res_return)]
         for node in candidates:
             result.extend(node.top_results.most_common(self.num_res_return))
 
