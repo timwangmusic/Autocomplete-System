@@ -1,6 +1,6 @@
 pytest
 redis
-sklearn
+scikit-learn
 numpy
 Flask==1.1.4
 py2neo==4.3.0
