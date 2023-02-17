@@ -10,11 +10,11 @@ from typing import List
 
 # from nltk.corpus import words as en_corpus
 from py2neo import Node
-from src.Trienode import TrieNode
-from src.Spell import Spell
+from src.trienode import TrieNode
+from src.spell import Spell
 
-from . import Database
-from src.Errors import ReturnResultValueLessThanOne
+from . import database
+from src.errors import ReturnResultValueLessThanOne
 
 # type alias
 Word_list = List[str]
@@ -48,7 +48,7 @@ class Server:
         """
         self.__class__.server_index += 1
         if connect_to_db:
-            self.db = Database.DatabaseHandler()
+            self.db = database.DatabaseHandler()
             self._selector = self.db.graph.nodes  # get node matcher
 
         if root is None:
@@ -162,7 +162,7 @@ class Server:
                 queue.append((db_node_child, cur.children[child]))
                 tx.create(db_node_child)
                 count += 1
-                tx.create(Database.Parent(db_node, db_node_child))
+                tx.create(database.Parent(db_node, db_node_child))
 
         tx.commit()
         if not self.testing:
@@ -193,7 +193,7 @@ class Server:
                                count=node.total_counts())
                 tx.create(db_node)
                 parent_db_node = self._selector.match('TrieNode', name=parent.prefix).first()
-                tx.create(Database.Parent(parent_db_node, db_node))
+                tx.create(database.Parent(parent_db_node, db_node))
                 tx.commit()
             else:
                 db_node['count'] = node.total_counts()
@@ -218,7 +218,7 @@ class Server:
             if isword:
                 self.__insert(prefix, isword=True, from_db=True, count=count)
             # find all parent-children relationships
-            for rel in graph.match(nodes=[node], r_type=Database.Parent):
+            for rel in graph.match(nodes=[node], r_type=database.Parent):
                 if rel is not None:
                     dfs(rel.nodes[1])
 
