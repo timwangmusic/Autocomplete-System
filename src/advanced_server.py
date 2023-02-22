@@ -3,15 +3,15 @@
 """
 
 
-from . import Server
-from . import Spell
+from . import server
+from . import spell
 from sklearn.neighbors import BallTree
 import numpy as np
 import json
 from os import path
 
 
-class AdvTrie(Server.Server):
+class AdvTrie(server.Server):
     """This class provides advanced functionality such as providing auto-corrections as suggestions."""
     MAX_CORRECTIONS = 10
     NUM_CORRECTIONS_TO_INSERT = MAX_CORRECTIONS // 2
@@ -41,7 +41,7 @@ class AdvTrie(Server.Server):
             print("Training BallTree k-nearest neighbor searcher...")
             self.searcher = BallTree(self.embeddings, leaf_size=10)
 
-        self.checker = Spell.Spell()
+        self.checker = spell.Spell()
         self.num_corrections = num_corrections
         self.num_basic_search_results = num_basic_results
         self.max_total_res = min(10, num_basic_results+num_corrections)

@@ -10,11 +10,11 @@ from typing import List
 
 # from nltk.corpus import words as en_corpus
 from py2neo import Node
-from src.Trienode import TrieNode
-from src.Spell import Spell
+from src.trienode import TrieNode
+from src.spell import Spell
 
-from . import Database
-from src.Errors import ReturnResultValueLessThanOne
+from . import database
+from src.errors import ReturnResultValueLessThanOne
 
 # type alias
 Word_list = List[str]
@@ -42,13 +42,13 @@ class Server:
                  testing: bool = False, node_count: int = 1):
         """
         :param num_res_return: maximum number of results to return to user
-        :param root: Trienode
+        :param root: Trie node
         :param connect_to_db: True if server is connected to a database
         :param testing: True if server constructed in test scripts
         """
         self.__class__.server_index += 1
         if connect_to_db:
-            self.db = Database.DatabaseHandler()
+            self.db = database.DatabaseHandler()
             self._selector = self.db.graph.nodes  # get node matcher
 
         if root is None:
@@ -162,11 +162,10 @@ class Server:
                 queue.append((db_node_child, cur.children[child]))
                 tx.create(db_node_child)
                 count += 1
-                tx.create(Database.Parent(db_node, db_node_child))
+                tx.create(database.Parent(db_node, db_node_child))
 
         tx.commit()
         if not self.testing:
-            # self.logger.info('Finished building database. Number of nodes created is {count}'.format(count=count))
             self.logger.info(f'Finished building database. Number of nodes created is {count}')
 
         if self.testing and tx.finished():
@@ -174,7 +173,7 @@ class Server:
 
     def update_db(self):
         """
-        Update database with latest application server usage
+        Update database with the latest application server usage
         :return: None
         """
         root = self.__root
@@ -193,7 +192,7 @@ class Server:
                                count=node.total_counts())
                 tx.create(db_node)
                 parent_db_node = self._selector.match('TrieNode', name=parent.prefix).first()
-                tx.create(Database.Parent(parent_db_node, db_node))
+                tx.create(database.Parent(parent_db_node, db_node))
                 tx.commit()
             else:
                 db_node['count'] = node.total_counts()
@@ -218,7 +217,7 @@ class Server:
             if isword:
                 self.__insert(prefix, isword=True, from_db=True, count=count)
             # find all parent-children relationships
-            for rel in graph.match(nodes=[node], r_type=Database.Parent):
+            for rel in graph.match(nodes=[node], r_type=database.Parent):
                 if rel is not None:
                     dfs(rel.nodes[1])
 
@@ -235,9 +234,6 @@ class Server:
         :param from_db: True if the method is called by build_trie()
         :return: Trie node which correspond to the word inserted
         """
-
-        # if word in Trie.english_words:
-        # self.vocab.add(word)
         cur = self.__root
 
         for char in word:
@@ -255,7 +251,6 @@ class Server:
             cur.count += 1
 
         if not self.testing:
-            # self.insertLogger.debug('Insert used for {word}'.format(word=word))
             self.insertLogger.debug(f'Insert used for {word}')
 
         return cur
@@ -358,7 +353,6 @@ class Server:
             self.search_count = 0
             self.update_top_results()
 
-        # result = [word[0] for word in last_node.top_results.most_common(self.num_res_return)]
         for node in candidates:
             result.extend(node.top_results.most_common(self.num_res_return))
 

@@ -1,5 +1,5 @@
 import tkinter as tk
-from src.Server import Server
+from src.server import Server
 
 import sys
 from pathlib import Path

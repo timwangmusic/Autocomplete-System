@@ -1,6 +1,6 @@
 import pytest
 import re
-from src.Server import Server
+from src.server import Server
 
 
 @pytest.fixture(name='app')

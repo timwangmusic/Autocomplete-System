@@ -11,8 +11,7 @@ async function search_words() {
 }
 
 async function loadSearchHistory() {
-    const url = '/search_history';
-    const obj = await (await fetch(url)).json();
+    const obj = await (await fetch('/history')).json();
 
     let search_history = $('#search_history');
     search_history.empty();
@@ -25,7 +24,6 @@ $('#searchBtn').click(search_words);
 $('#searchTerm').on('keypress',
     async (e) => {
         if (e.key === 'Enter') {
-            console.log("user starts search");
             await search_words();
         }
     }
