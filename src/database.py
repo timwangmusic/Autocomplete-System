@@ -3,13 +3,14 @@
 """
 
 
-from py2neo import Graph, Relationship
+# from py2neo import Graph, Relationship
 
 
-class Parent(Relationship):
-    pass
+# class Parent(Relationship):
+#     pass
 
 
 class DatabaseHandler:
     def __init__(self, username='neo4j', password='admin', bolt=7687):
-        self.graph = Graph(user=username, password=password, bolt_port=bolt)
+        # self.graph = Graph(user=username, password=password, bolt_port=bolt)
+        return

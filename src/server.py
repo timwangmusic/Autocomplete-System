@@ -9,7 +9,7 @@ import csv
 from typing import List
 
 # from nltk.corpus import words as en_corpus
-from py2neo import Node
+# from py2neo import Node
 from src.trienode import TrieNode
 from src.spell import Spell
 
@@ -49,7 +49,7 @@ class Server:
         self.__class__.server_index += 1
         if connect_to_db:
             self.db = database.DatabaseHandler()
-            self._selector = self.db.graph.nodes  # get node matcher
+            # self._selector = self.db.graph.nodes  # get node matcher
 
         if root is None:
             self.__root = TrieNode(prefix='', is_word=False)
@@ -132,97 +132,97 @@ class Server:
         res = self.__root.top_results.most_common(num_results)
         return [word for word, count in res]
 
-    def build_db(self):
-        """
-        This method removes data from database and build new graph with in-memory data in application server.
-        :return: None
-        """
-        self.db.graph.delete_all()  # delete all existing nodes and relationships
-        queue = deque()
-        tx = self.db.graph.begin()
-        self.logger.info('Start updating database.')
-        node = Node('TrieNode', 'ROOT',
-                    isword=False,
-                    name='',
-                    )
-        node['count'] = self.__root.total_counts()
-        tx.create(node)  # create root in neo4j
-        queue.append((node, self.__root))
-        count = 0
+    # def build_db(self):
+    #     """
+    #     This method removes data from database and build new graph with in-memory data in application server.
+    #     :return: None
+    #     """
+    #     self.db.graph.delete_all()  # delete all existing nodes and relationships
+    #     queue = deque()
+    #     tx = self.db.graph.begin()
+    #     self.logger.info('Start updating database.')
+    #     node = Node('TrieNode', 'ROOT',
+    #                 isword=False,
+    #                 name='',
+    #                 )
+    #     node['count'] = self.__root.total_counts()
+    #     tx.create(node)  # create root in neo4j
+    #     queue.append((node, self.__root))
+    #     count = 0
+    #
+    #     while queue:
+    #         db_node, cur = queue.popleft()
+    #         for child in cur.children:
+    #             prefix = cur.children[child].prefix
+    #             db_node_child = Node('TrieNode',
+    #                                  name=prefix,
+    #                                  isword=cur.children[child].isWord,
+    #                                  count=cur.children[child].total_counts()
+    #                                  )
+    #             queue.append((db_node_child, cur.children[child]))
+    #             tx.create(db_node_child)
+    #             count += 1
+    #             tx.create(database.Parent(db_node, db_node_child))
+    #
+    #     tx.commit()
+    #     if not self.testing:
+    #         self.logger.info(f'Finished building database. Number of nodes created is {count}')
+    #
+    #     if self.testing and tx.finished():
+    #         self.logger.info('Transaction finished.')
 
-        while queue:
-            db_node, cur = queue.popleft()
-            for child in cur.children:
-                prefix = cur.children[child].prefix
-                db_node_child = Node('TrieNode',
-                                     name=prefix,
-                                     isword=cur.children[child].isWord,
-                                     count=cur.children[child].total_counts()
-                                     )
-                queue.append((db_node_child, cur.children[child]))
-                tx.create(db_node_child)
-                count += 1
-                tx.create(database.Parent(db_node, db_node_child))
+    # def update_db(self):
+    #     """
+    #     Update database with the latest application server usage
+    #     :return: None
+    #     """
+    #     root = self.__root
+    #     g = self.db.graph
+    #
+    #     def dfs(node, parent):
+    #         """update node info to database"""
+    #         if not node:
+    #             return
+    #         db_node = self._selector.match('TrieNode', name=node.prefix).first()
+    #         if not db_node:
+    #             tx = g.begin()
+    #             db_node = Node('TrieNode',
+    #                            name=node.prefix,
+    #                            isword=node.isWord,
+    #                            count=node.total_counts())
+    #             tx.create(db_node)
+    #             parent_db_node = self._selector.match('TrieNode', name=parent.prefix).first()
+    #             tx.create(database.Parent(parent_db_node, db_node))
+    #             tx.commit()
+    #         else:
+    #             db_node['count'] = node.total_counts()
+    #             g.push(db_node)
+    #         for child in node.children:
+    #             dfs(node.children[child], node)
+    #
+    #     dfs(root, None)
 
-        tx.commit()
-        if not self.testing:
-            self.logger.info(f'Finished building database. Number of nodes created is {count}')
-
-        if self.testing and tx.finished():
-            self.logger.info('Transaction finished.')
-
-    def update_db(self):
-        """
-        Update database with the latest application server usage
-        :return: None
-        """
-        root = self.__root
-        g = self.db.graph
-
-        def dfs(node, parent):
-            """update node info to database"""
-            if not node:
-                return
-            db_node = self._selector.match('TrieNode', name=node.prefix).first()
-            if not db_node:
-                tx = g.begin()
-                db_node = Node('TrieNode',
-                               name=node.prefix,
-                               isword=node.isWord,
-                               count=node.total_counts())
-                tx.create(db_node)
-                parent_db_node = self._selector.match('TrieNode', name=parent.prefix).first()
-                tx.create(database.Parent(parent_db_node, db_node))
-                tx.commit()
-            else:
-                db_node['count'] = node.total_counts()
-                g.push(db_node)
-            for child in node.children:
-                dfs(node.children[child], node)
-
-        dfs(root, None)
-
-    def build_trie(self):
-        """
-        This method builds trie server with TrieNode-labeled nodes from the database.
-        Improves run-time by only inserting complete words.
-        :return: None
-        """
-        self.app_reset()
-        root = self._selector.match('ROOT').first()
-        graph = self.db.graph
-
-        def dfs(node):
-            prefix, isword, count = node['name'], node['isword'], node['count']
-            if isword:
-                self.__insert(prefix, isword=True, from_db=True, count=count)
-            # find all parent-children relationships
-            for rel in graph.match(nodes=[node], r_type=database.Parent):
-                if rel is not None:
-                    dfs(rel.nodes[1])
-
-        dfs(root)
-        self.update_top_results()
+    # def build_trie(self):
+    #     """
+    #     This method builds trie server with TrieNode-labeled nodes from the database.
+    #     Improves run-time by only inserting complete words.
+    #     :return: None
+    #     """
+    #     self.app_reset()
+    #     root = self._selector.match('ROOT').first()
+    #     graph = self.db.graph
+    #
+    #     def dfs(node):
+    #         prefix, isword, count = node['name'], node['isword'], node['count']
+    #         if isword:
+    #             self.__insert(prefix, isword=True, from_db=True, count=count)
+    #         # find all parent-children relationships
+    #         for rel in graph.match(nodes=[node], r_type=database.Parent):
+    #             if rel is not None:
+    #                 dfs(rel.nodes[1])
+    #
+    #     dfs(root)
+    #     self.update_top_results()
 
     def __insert(self, word: str, *, isword: bool = True, count: int = 0, from_db: bool = False) -> TrieNode:
         """
