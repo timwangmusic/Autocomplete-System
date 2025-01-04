@@ -12,3 +12,4 @@ flask = "==3.0.2"
 pyyaml = "*"
 
 [dev-packages]
+pytest = ">=7.2"
