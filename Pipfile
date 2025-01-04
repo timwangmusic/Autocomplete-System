@@ -12,6 +12,3 @@ flask = "==3.0.2"
 pyyaml = "*"
 
 [dev-packages]
-
-[requires]
-python_version = "3.13"
